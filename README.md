@@ -1,4 +1,4 @@
-Copyright @ 2017 Rodolphe Cargnello, rodolphe.cargnello@u-psud.fr <br />
+Copyright © 2017 Rodolphe Cargnello, rodolphe.cargnello@u-psud.fr <br />
 
 # BRSS - Biochemical Reaction Stochastic Simulator
 
@@ -25,6 +25,7 @@ Required:
 - C++11 compiler
 - [Qt5](https://www.qt.io/)
 - [OpenSceneGraph](http://www.openscenegraph.org/)
+- [QCustomPlot](http://www.qcustomplot.com/)
 
 ### Compilation
 

@@ -1,4 +1,4 @@
-// Copyright © 2017 Rodolphe Cargnello, rodolphe.cargnello@gmail.com
+// Copyright ï¿½ 2017 Rodolphe Cargnello, rodolphe.cargnello@gmail.com
 
 // This file is part of BRSS.
 
@@ -30,7 +30,7 @@ class osg_widget: public QGLWidget
 Q_OBJECT
 
 public:
-	explicit osg_widget(double const scaleX = 1.0, double const scaleY = 1.0, QWidget *parent = 0);
+	explicit osg_widget(QWidget *parent = 0, double const scaleX = 2.0, double const scaleY = 2.0);
 
 protected:
 	void initializeGL();

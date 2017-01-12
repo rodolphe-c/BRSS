@@ -22,10 +22,11 @@
 #include <osg/ShapeDrawable>
 #include <osg/Material>
 #include <osg/Camera>
+#include <osg/BlendFunc>
 
 #include "osg_widget.hpp"
 
-osg_widget::osg_widget(double const scaleX, double const scaleY, QWidget *parent):
+osg_widget::osg_widget(QWidget *parent, double const scaleX, double const scaleY):
 	QGLWidget(parent),
 	m_window
 	(
@@ -34,25 +35,22 @@ osg_widget::osg_widget(double const scaleX, double const scaleY, QWidget *parent
 	m_scaleX(scaleX),
 	m_scaleY(scaleY)
 {
+
 	m_viewer =new osgViewer::Viewer;
 
 	osg::Cylinder* cylinder    = new osg::Cylinder( osg::Vec3( 0.f, 0.f, 0.f ), 0.25f, 0.5f );
 	osg::ShapeDrawable* sd = new osg::ShapeDrawable( cylinder );
-	sd->setColor(osg::Vec4(0.7f, 0.7f, 0.7f, 1.f));
 	osg::Geode* geode = new osg::Geode;
 	geode->addDrawable(sd);
 
-	//osg::ref_ptr<osg::Node> root = osgDB::readNodeFile("../../data/cessna.osg");
-
 	osg::Camera* camera = new osg::Camera;
 	camera->setViewport( 0, 0, this->width(), this->height() );
-	camera->setClearColor( osg::Vec4( 0.9f, 0.9f, 1.f, 1.f ) );
+	camera->setClearColor( osg::Vec4( 0.4f, 0.4f, 0.6f, 1.f ) );
 	double aspectRatio = double( this->width()) / double( this->height() );
 	camera->setProjectionMatrixAsPerspective( 30, aspectRatio, 1, 1000);
 	camera->setGraphicsContext( m_window );
 
 	m_viewer->setCamera(camera);
-	//m_viewer->setSceneData(root.get());
 	m_viewer->setSceneData(geode);
 
 	osgGA::TrackballManipulator* manipulator = new osgGA::TrackballManipulator;
@@ -61,16 +59,19 @@ osg_widget::osg_widget(double const scaleX, double const scaleY, QWidget *parent
 	m_viewer->setCameraManipulator(manipulator);
 	m_viewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
 	m_viewer->realize();
+
 }
 
 void osg_widget::initializeGL()
 {
-	osg::Geode* geode = dynamic_cast<osg::Geode*>(m_viewer->getSceneData());
-	osg::StateSet* stateSet = geode->getOrCreateStateSet();
-	osg::Material* material = new osg::Material;
-	material->setColorMode( osg::Material::AMBIENT_AND_DIFFUSE );
-	stateSet->setAttributeAndModes( material, osg::StateAttribute::ON );
-	stateSet->setMode( GL_DEPTH_TEST, osg::StateAttribute::ON );
+	osg::ref_ptr<osg::Geode> geode = dynamic_cast<osg::Geode*>(m_viewer->getSceneData());
+	osg::ref_ptr<osg::StateSet> stateSet = geode->getOrCreateStateSet();
+
+	osg::ref_ptr<osg::Material> material = new osg::Material;
+	material->setAlpha(osg::Material::FRONT_AND_BACK, 0.1f);
+	stateSet->setAttributeAndModes( material.get(), osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
+	osg::ref_ptr<osg::BlendFunc> bf = new osg::BlendFunc(osg::BlendFunc::SRC_ALPHA,osg::BlendFunc::ONE_MINUS_SRC_ALPHA );
+	stateSet->setAttributeAndModes(bf.get());
 }
 
 void osg_widget::resizeGL(int width, int height)
@@ -86,6 +87,7 @@ void osg_widget::paintGL()
 {
 	if (m_viewer.valid())
 	{
+		this->update();
 		m_viewer->frame();
 	}
 }
@@ -136,6 +138,5 @@ void osg_widget::wheelEvent(QWheelEvent* event)
 bool osg_widget::event(QEvent* event)
 {
 	bool handled = QGLWidget::event(event);
-	this->update();
 	return handled;
 }

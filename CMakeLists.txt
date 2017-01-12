@@ -1,4 +1,4 @@
-# Copyright © 2017 Rodolphe Cargnello, rodolphe.cargnello@gmail.com
+# Copyright ï¿½ 2017 Rodolphe Cargnello, rodolphe.cargnello@gmail.com
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,12 +19,12 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Release
-	if (RELEASE OR DEBUG STREQUAL "FALSE")
+    if (RELEASE OR DEBUG STREQUAL "FALSE")
 		set(RELEASE "TRUE")
 	endif()
 
 # Debug
-	if (DEBUG OR RELEASE STREQUAL "DEBUG" OR RELEASE STREQUAL "FALSE")
+    if (DEBUG OR RELEASE STREQUAL "DEBUG" OR RELEASE STREQUAL "FALSE")
 		set(RELEASE "FALSE")
 	endif()
 
@@ -33,7 +33,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # General C++ flags
 
 	# General
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wconversion -Wsign-conversion -std=c++11 -pedantic")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wconversion -Wsign-conversion -std=c++14 -pedantic")
 
 	# Release / Debug flags
 	if (RELEASE)
@@ -44,11 +44,28 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Qt 5
 	message(STATUS "---")
+	find_package(Qt5Core REQUIRED)
+	find_package(Qt5Gui REQUIRED)
 	find_package(Qt5Widgets REQUIRED)
+	find_package(Qt5PrintSupport REQUIRED)
 	find_package(Qt5OpenGL REQUIRED)
 
-	set(qt5_libraries Qt5::Widgets Qt5::OpenGL)
+	set(qt5_libraries Qt5::Core Qt5::Gui Qt5::Widgets Qt5::PrintSupport Qt5::OpenGL)
 	message(STATUS "Qt5 found =)")
+	link_libraries(${qt5_libraries})
+
+# QCUSTOMPLOT
+	message(STATUS "---")
+	find_package(QCUSTOMPLOT REQUIRED)
+
+	if(QCUSTOMPLOT_FOUND)
+		include_directories( ${QCUSTOMPLOT_INCLUDE_DIRS} )
+		link_libraries(${QCUSTOMPLOT_LIBRARIES})
+
+		message(STATUS "QCustomPlot found =)")
+	else()
+		message(STATUS "QCustomPlot not found! :(")
+	endif()
 
 # OSG
 	message(STATUS "---")
@@ -56,6 +73,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 if(OSG_FOUND AND OSGDB_FOUND AND OSGGA_FOUND AND OSGUTIL_FOUND AND OSGVIEWER_FOUND)
 	include_directories( ${OPENSCENEGRAPH_INCLUDE_DIRS} )
+	link_libraries(${OPENSCENEGRAPH_LIBRARIES})
 	message(STATUS "OpenSceneGraph found =)")
 else()
 	message(STATUS "OpenSceneGraph not found! :(")
@@ -84,6 +102,8 @@ endif()
 
 # Executables
 
+	file(GLOB_RECURSE uis_forms src/*.ui)
+
 	message(STATUS "---")
 
 	file(GLOB_RECURSE exes exe/*.cpp)
@@ -97,8 +117,6 @@ endif()
 
 		message(STATUS "Add exe ${exe_name}")
 
-		add_executable(${exe_name} "${exe_source}" "${project_sources}")
-
-		target_link_libraries(${exe_name} "${qt5_libraries}" ${OPENSCENEGRAPH_LIBRARIES})
+		add_executable(${exe_name} "${exe_source}" "${project_sources}" "${uis_forms}")
 
 	endforeach()

@@ -14,13 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with BRSS. If not, see <http://www.gnu.org/licenses/>
 
-
 #include <QApplication>
 #include <QMainWindow>
 
+#include <osgQt/GraphicsWindowQt>
+
 #include "test.hpp"
 
-#include "../src/osg_widget.hpp"
+#include "../src/main_window.hpp"
 
 int main( int argc, char** argv )
 {
@@ -29,12 +30,9 @@ int main( int argc, char** argv )
 	QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
 	QApplication application( argc, argv );
-	QMainWindow window;
-
-	osg_widget* widget = new osg_widget(2,2);
+	main_window window;
 
 	window.setWindowTitle("BRSS");
-	window.setCentralWidget(widget);
 	window.show();
 
 	return( application.exec() );
