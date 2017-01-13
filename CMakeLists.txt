@@ -32,7 +32,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # General C++ flags
 
-	# General
+    # General
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wconversion -Wsign-conversion -std=c++14 -pedantic")
 
 	# Release / Debug flags
@@ -43,7 +43,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 	endif()
 
 # Qt 5
-	message(STATUS "---")
+    message(STATUS "---")
 	find_package(Qt5Core REQUIRED)
 	find_package(Qt5Gui REQUIRED)
 	find_package(Qt5Widgets REQUIRED)
@@ -52,10 +52,10 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 	set(qt5_libraries Qt5::Core Qt5::Gui Qt5::Widgets Qt5::PrintSupport Qt5::OpenGL)
 	message(STATUS "Qt5 found =)")
-	link_libraries(${qt5_libraries})
+    link_libraries(${qt5_libraries})
 
 # QCUSTOMPLOT
-	message(STATUS "---")
+    message(STATUS "---")
 	find_package(QCUSTOMPLOT REQUIRED)
 
 	if(QCUSTOMPLOT_FOUND)
@@ -63,12 +63,12 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 		link_libraries(${QCUSTOMPLOT_LIBRARIES})
 
 		message(STATUS "QCustomPlot found =)")
-	else()
+    else()
 		message(STATUS "QCustomPlot not found! :(")
 	endif()
 
 # OSG
-	message(STATUS "---")
+    message(STATUS "---")
 	find_package(OpenSceneGraph REQUIRED COMPONENTS osgDB osgGA osgUtil osgViewer)
 
 if(OSG_FOUND AND OSGDB_FOUND AND OSGGA_FOUND AND OSGUTIL_FOUND AND OSGVIEWER_FOUND)
@@ -80,14 +80,14 @@ else()
 endif()
 
 # Project
-	message(STATUS "---")
+    message(STATUS "---")
 	set(project_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 	include_directories("${project_INCLUDE}")
 	message(STATUS "Include project = ${project_INCLUDE}")
 
 
 # Compiler log
-	message(STATUS "---")
+    message(STATUS "---")
 	message(STATUS "C++ compiler = ${CMAKE_CXX_COMPILER}")
 	message(STATUS "C++ flags    = ${CMAKE_CXX_FLAGS}")
 	if (RELEASE)
@@ -98,11 +98,11 @@ endif()
 
 # Sources
 
-	file(GLOB_RECURSE project_sources src/*.cpp)
+    file(GLOB_RECURSE project_sources src/*.cpp)
 
 # Executables
 
-	file(GLOB_RECURSE uis_forms src/*.ui)
+    file(GLOB_RECURSE uis_forms src/*.ui)
 
 	message(STATUS "---")
 

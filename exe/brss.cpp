@@ -17,8 +17,6 @@
 #include <QApplication>
 #include <QMainWindow>
 
-#include <osgQt/GraphicsWindowQt>
-
 #include "test.hpp"
 
 #include "../src/main_window.hpp"

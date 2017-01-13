@@ -1,13 +1,9 @@
 #ifndef MAIN_WINDOW_HPP
 #define MAIN_WINDOW_HPP
 
-#include <algorithm>
-#include <cmath>
-#include <chrono>
-#include <thread>
-
 #include <QMainWindow>
 #include <QTimer>
+#include <QTime>
 
 namespace Ui {
 	class main_window;
@@ -22,14 +18,16 @@ public:
 	~main_window();
 
 public slots:
-	void drawPlot();
+	void draw();
 
 private:
 	Ui::main_window *ui;
-	QTimer timer;
-	std::thread t;
 	QVector<double> x, y;
 	double cpt;
+
+	//update loop
+	QTime time;
+	double lastElapsed = 0;
 };
 
 #endif // MAIN_WINDOW_HPP

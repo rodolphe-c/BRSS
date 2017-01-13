@@ -20,6 +20,9 @@
 
 #include <QGLWidget>
 
+#include <osg/Node>
+#include <osg/Geode>
+#include <osg/Group>
 #include <osgViewer/Viewer>
 #include <osgDB/ReadFile>
 #include <osgGA/TrackballManipulator>
@@ -43,13 +46,18 @@ protected:
 	void wheelEvent(QWheelEvent* event);
 	bool event(QEvent* event);
 
+public slots:
+	void brownian_move();
 
 private:
 	osg::ref_ptr<osgViewer::Viewer> m_viewer;
 	osg::ref_ptr<osgViewer::GraphicsWindowEmbedded> m_window;
 	double m_scaleX, m_scaleY;
 
+	osg::ref_ptr<osg::Group> group;
+
 	osgGA::EventQueue* getEventQueue() const;
+
 };
 
 #endif
