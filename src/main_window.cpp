@@ -3,8 +3,6 @@
 
 #include <cmath>
 
-#include <QDebug>
-
 main_window::main_window(QWidget *parent) :
 	QMainWindow(parent),
 	ui(new Ui::main_window),
@@ -40,19 +38,23 @@ main_window::~main_window()
 
 void main_window::draw()
 {
-	ui->osg->update();
 	double elapsed = time.elapsed()/1000.0;
-	if (elapsed-lastElapsed > 0.10)
+	if (elapsed-lastElapsed > 0.002)
 	{
+		lastElapsed = elapsed;
+		ui->osg->brownian_move();
+		/*
 		cpt = fmin(cpt+0.1, 100);
 		ui->plot->graph(0)->addData(cpt,cos(cpt));
 		ui->plot->graph(1)->addData(cpt,-cos(cpt));
-		lastElapsed = elapsed;
+
 		if(cpt > 100)
 		{
 			ui->plot->rescaleAxes();
 		}
 		qDebug() << "Taille = " + QString::number(ui->plot->graph(0)->data()->size());
+		*/
 	}
-	ui->plot->replot();
+	ui->osg->update();
+	//ui->plot->replot();
 }

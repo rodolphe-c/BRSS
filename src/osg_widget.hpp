@@ -18,6 +18,8 @@
 #ifndef osg_widget_hpp
 #define osg_widget_hpp
 
+#include <vector>
+
 #include <QGLWidget>
 
 #include <osg/Node>
@@ -28,9 +30,23 @@
 #include <osgGA/TrackballManipulator>
 #include <osg/MatrixTransform>
 
+#include "brss/enzyme.hpp"
+
 class osg_widget: public QGLWidget
 {
 Q_OBJECT
+
+private:
+	osg::ref_ptr<osgViewer::Viewer> m_viewer;
+	osg::ref_ptr<osgViewer::GraphicsWindowEmbedded> m_window;
+	osg::ref_ptr<osg::Group> m_group;
+
+	std::vector<enzyme> m_enzymes;
+
+	double m_scaleX, m_scaleY;
+	float m_radiusEnzyme = 1.f;
+	float m_radiusCells = 20.f;
+	double m_degree = 1;
 
 public:
 	explicit osg_widget(QWidget *parent = 0, double const scaleX = 2.0, double const scaleY = 2.0);
@@ -46,18 +62,11 @@ protected:
 	void wheelEvent(QWheelEvent* event);
 	bool event(QEvent* event);
 
-public slots:
-	void brownian_move();
-
 private:
-	osg::ref_ptr<osgViewer::Viewer> m_viewer;
-	osg::ref_ptr<osgViewer::GraphicsWindowEmbedded> m_window;
-	double m_scaleX, m_scaleY;
-
-	osg::ref_ptr<osg::Group> group;
-
 	osgGA::EventQueue* getEventQueue() const;
 
+public slots:
+	void brownian_move();
 };
 
 #endif

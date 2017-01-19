@@ -21,12 +21,21 @@
 #include <QWheelEvent>
 
 #include <osg/Group>
+#include <osg/Math>
+#include <osg/PositionAttitudeTransform>
 #include <osgViewer/GraphicsWindow>
 #include <osg/ShapeDrawable>
-#include <osg/Material>
 #include <osg/Camera>
+#include <osg/Material>
 #include <osg/BlendFunc>
+#include <osg/Texture>
+#include <osg/Texture2D>
+#include <osg/Object>
+#include <osg/CullFace>
 
+#include<cmath>
+
+#include "hopp/random.hpp"
 #include "osg_widget.hpp"
 
 osg_widget::osg_widget(QWidget *parent, double const scaleX, double const scaleY):
@@ -41,14 +50,17 @@ osg_widget::osg_widget(QWidget *parent, double const scaleX, double const scaleY
 
 	m_viewer =new osgViewer::Viewer;
 
-	group = new osg::Group;
+	m_group = new osg::Group;
 
 	// Cellule
-	osg::ref_ptr<osg::Sphere> sphere    = new osg::Sphere( osg::Vec3( 0.f, 0.f, 0.f ), 20.0);
-	osg::ref_ptr<osg::ShapeDrawable> sd = new osg::ShapeDrawable( sphere );
-	osg::ref_ptr<osg::Geode> cellule = new osg::Geode;
-	cellule->addDrawable(sd);
-	group->addChild(cellule);
+	{
+		osg::ref_ptr<osg::Sphere> sphere    = new osg::Sphere( osg::Vec3( 0.f, 0.f, 0.f ), m_radiusCells);
+		osg::ref_ptr<osg::ShapeDrawable> sd = new osg::ShapeDrawable( sphere );
+		sd->setColor(osg::Vec4(1.f,1.f,1.f,1.f));
+		osg::ref_ptr<osg::Geode> cellule = new osg::Geode;
+		cellule->addDrawable(sd);
+		m_group->addChild(cellule);
+	}
 
 	// Enzymes
 	for  (size_t k = 0; k < 10; ++k)
@@ -59,28 +71,31 @@ osg_widget::osg_widget(QWidget *parent, double const scaleX, double const scaleY
 			{
 				osg::ref_ptr<osg::Geode> enzyme = new osg::Geode;
 				osg::ref_ptr<osg::ShapeDrawable> obj = new osg::ShapeDrawable;
-
-				auto mat = osg::Matrix::translate(-10.0, -10.0, -10.0);
-				auto pos = osg::Vec3(float(i)*2.f+1.f, float(j)*2.f+1.f, float(k)*2.f+1.f) * mat;
-
-				obj->setShape(new osg::Sphere(pos, 1.f));
-				obj->setColor(osg::Vec4(float(j%2)+1,float(j%2),0.f,1.f));
+				obj->setShape(new osg::Sphere(osg::Vec3(0,0,0), m_radiusEnzyme));
+				obj->setColor(osg::Vec4(float((i+j+k)%2),1-float((i+j+k)%2%2),0.f,1.f));
 				enzyme->addDrawable(obj.get());
 
-				group->addChild(enzyme);
+				osg::ref_ptr<osg::PositionAttitudeTransform> transform = new osg::PositionAttitudeTransform;
+				auto mat = osg::Matrix::translate(-10.0, -10.0, -10.0);
+				auto pos = osg::Vec3(float(i)*2.f+m_radiusEnzyme, float(j)*2.f+m_radiusEnzyme, float(k)*2.f+m_radiusEnzyme) * mat;
+
+				transform->setPosition(pos);
+				transform->addChild(enzyme);
+
+				m_group->addChild(transform);
 			}
 		}
 	}
 
 	osg::ref_ptr<osg::Camera> camera = new osg::Camera;
 	camera->setViewport( 0, 0, this->width(), this->height() );
-	camera->setClearColor( osg::Vec4( 0.4f, 0.4f, 0.6f, 1.f ) );
+	camera->setClearColor( osg::Vec4( 0.f, 0.f, 0.f, 1.f ) );
 	double aspectRatio = double( this->width()) / double( this->height() );
 	camera->setProjectionMatrixAsPerspective( 30, aspectRatio, 1, 1000);
 	camera->setGraphicsContext( m_window );
 
 	m_viewer->setCamera(camera.get());
-	m_viewer->setSceneData(group.get());
+	m_viewer->setSceneData(m_group.get());
 
 	osg::ref_ptr<osgGA::TrackballManipulator> manipulator = new osgGA::TrackballManipulator;
 	manipulator->setAllowThrow( false );
@@ -99,20 +114,36 @@ void osg_widget::initializeGL()
 		osg::ref_ptr<osg::Group> geode = dynamic_cast<osg::Geode*>(group->getChild(0));
 		osg::ref_ptr<osg::StateSet> stateSet = geode->getOrCreateStateSet();
 		osg::ref_ptr<osg::Material> material = new osg::Material;
-		material->setAlpha(osg::Material::FRONT_AND_BACK, 0.1f);
+		material->setAlpha(osg::Material::FRONT_AND_BACK, 0.4f);
 		stateSet->setAttributeAndModes( material.get(), osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
 		osg::ref_ptr<osg::BlendFunc> bf = new osg::BlendFunc(osg::BlendFunc::SRC_ALPHA,osg::BlendFunc::ONE_MINUS_SRC_ALPHA );
 		stateSet->setAttributeAndModes(bf.get());
+		stateSet->setAttributeAndModes(new osg::CullFace(osg::CullFace::FRONT));
+		stateSet->setAttributeAndModes(new osg::CullFace(osg::CullFace::BACK));
 	}
+
+	/*
+	osg::Image *image = osgDB::readImageFile("../../img/earthmap1k.jpg");
+	osg::Texture2D *texture = new osg::Texture2D;
+	texture->setDataVariance(osg::Object::DYNAMIC);
+	texture->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR);
+	texture->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
+	texture->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP);
+	texture->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP);
+	texture->setImage(image);
+	*/
 
 	//Enzymes
 	for  (size_t i = 0; i < group->getNumChildren()-1; ++i)
 	{
-		osg::ref_ptr<osg::Group> geode = dynamic_cast<osg::Geode*>(group->getChild(unsigned(i+1)));
+		osg::ref_ptr<osg::PositionAttitudeTransform> transform = dynamic_cast<osg::PositionAttitudeTransform*>(group->getChild(unsigned(i+1)));
+
+		osg::ref_ptr<osg::Group> geode = dynamic_cast<osg::Geode*>(transform->getChild(0));
 		osg::ref_ptr<osg::StateSet> stateSet = geode->getOrCreateStateSet();
 		osg::Material* material = new osg::Material;
-		material->setColorMode( osg::Material::AMBIENT_AND_DIFFUSE );
-		stateSet->setAttributeAndModes( material, osg::StateAttribute::ON );
+		material->setColorMode( osg::Material::DIFFUSE);
+		stateSet->setAttribute(material);
+		//stateSet->setTextureAttributeAndModes(0, texture, osg::StateAttribute::ON);
 		stateSet->setMode( GL_DEPTH_TEST, osg::StateAttribute::ON );
 	}
 }
@@ -183,19 +214,23 @@ bool osg_widget::event(QEvent* event)
 	return handled;
 }
 
-
 void osg_widget::brownian_move()
 {
-	for  (size_t i = 0; i < group->getNumChildren()-1; ++i)
+	for  (size_t i = 0; i < m_group->getNumChildren()-1; ++i)
 	{
-		std::random_device rd;
-		std::mt19937 gen(rd());
-		std::uniform_int_distribution<> dis(0, 360);
+		osg::ref_ptr<osg::PositionAttitudeTransform> transform = dynamic_cast<osg::PositionAttitudeTransform*>(m_group->getChild(unsigned(i+1)));
 
-		osg::ref_ptr<osg::Group> geode = dynamic_cast<osg::Geode*>(group->getChild(unsigned(i+1)));
+		float x = float(hopp::random::uniform(0,2000)-1000.f)/5000;
+		float y = float(hopp::random::uniform(0,2000)-1000.f)/5000;
+		float z = float(hopp::random::uniform(0,2000)-1000.f)/5000;
 
-		osg::ref_ptr<osg::MatrixTransform> transformation1 = new osg::MatrixTransform;
-		//transformation1->setMatrix (osg::Matrix::rotate( TODO )));
-		transformation1->addChild(geode);
+		auto pos = transform->getPosition() + osg::Vec3(x,y,z);
+
+
+		if(std::pow(pos.x(),2)+std::pow(pos.y(),2)+std::pow(pos.z(),2) < std::pow(m_radiusCells - m_radiusEnzyme,2))
+		{
+			transform->setPosition(pos);
+		}
+
 	}
 }
