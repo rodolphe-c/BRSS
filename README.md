@@ -1,6 +1,7 @@
 Copyright © 2017 Rodolphe Cargnello, rodolphe.cargnello@u-psud.fr <br />
 
 # BRSS - Biochemical Reaction Stochastic Simulator
+![Image of BRSS](https://github.com/rodolphe-c/BRSS/tree/master/img/brss.png)
 
 BRSS is a study and research project supervised by Mr. [Patrick Amar](https://www.lri.fr/~pa/) in the framework of the simulation of biochemical reaction. [(Subject)](https://perso.limsi.fr/Individu/allauzen/cours/ter/TER-Simulation.html)<br /><br />
   This project is divided into 3 modules:<br />
