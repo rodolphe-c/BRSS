@@ -17,17 +17,20 @@
 #include <QApplication>
 #include <QMainWindow>
 
-#include "test.hpp"
+#include "brss/brss.hpp"
 
 #include "../src/main_window.hpp"
 
 int main( int argc, char** argv )
 {
-	version();
-
 	QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
 	QApplication application( argc, argv );
+	application.setApplicationName(QApplication::tr("BRSS"));
+	application.setOrganizationName("BRSS");
+	application.setOrganizationDomain("https://github.com/rodolphe-c/BRSS");
+	application.setApplicationVersion(QString::fromStdString(brss::version()));
+
 	main_window window;
 
 	window.setWindowTitle("BRSS");

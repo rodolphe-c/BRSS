@@ -23,23 +23,17 @@ cd BRSS
 Required:
 
 - C++11 compiler
+- [Boost] (http://www.boost.org/)
 - [Qt5](https://www.qt.io/)
 - [OpenSceneGraph](http://www.openscenegraph.org/)
 - [QCustomPlot](http://www.qcustomplot.com/)
 
-### Compilation
-
-###### With CMake
+### Compilation with CMake
 
 ```sh
 mkdir build
 cd build
 cmake ..
 make
-# make test
-./project
+./brss
 ```
-
-###### Without CMake
-
-TODO

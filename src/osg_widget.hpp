@@ -30,7 +30,7 @@
 #include <osgGA/TrackballManipulator>
 #include <osg/MatrixTransform>
 
-#include "brss/enzyme.hpp"
+#include "brss/molecule.hpp"
 
 class osg_widget: public QGLWidget
 {
@@ -41,10 +41,10 @@ private:
 	osg::ref_ptr<osgViewer::GraphicsWindowEmbedded> m_window;
 	osg::ref_ptr<osg::Group> m_group;
 
-	std::vector<enzyme> m_enzymes;
+	std::vector<molecule> m_molecules;
 
 	double m_scaleX, m_scaleY;
-	float m_radiusEnzyme = 1.f;
+	float m_radiusMolecule = 1.f;
 	float m_radiusCells = 20.f;
 	double m_degree = 1;
 

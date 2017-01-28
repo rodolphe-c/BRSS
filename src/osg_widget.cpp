@@ -71,13 +71,13 @@ osg_widget::osg_widget(QWidget *parent, double const scaleX, double const scaleY
 			{
 				osg::ref_ptr<osg::Geode> enzyme = new osg::Geode;
 				osg::ref_ptr<osg::ShapeDrawable> obj = new osg::ShapeDrawable;
-				obj->setShape(new osg::Sphere(osg::Vec3(0,0,0), m_radiusEnzyme));
+				obj->setShape(new osg::Sphere(osg::Vec3(0,0,0), m_radiusMolecule));
 				obj->setColor(osg::Vec4(float((i+j+k)%2),1-float((i+j+k)%2%2),0.f,1.f));
 				enzyme->addDrawable(obj.get());
 
 				osg::ref_ptr<osg::PositionAttitudeTransform> transform = new osg::PositionAttitudeTransform;
 				auto mat = osg::Matrix::translate(-10.0, -10.0, -10.0);
-				auto pos = osg::Vec3(float(i)*2.f+m_radiusEnzyme, float(j)*2.f+m_radiusEnzyme, float(k)*2.f+m_radiusEnzyme) * mat;
+				auto pos = osg::Vec3(float(i)*2.f+m_radiusMolecule, float(j)*2.f+m_radiusMolecule, float(k)*2.f+m_radiusMolecule) * mat;
 
 				transform->setPosition(pos);
 				transform->addChild(enzyme);
@@ -122,8 +122,8 @@ void osg_widget::initializeGL()
 		stateSet->setAttributeAndModes(new osg::CullFace(osg::CullFace::BACK));
 	}
 
-	/*
-	osg::Image *image = osgDB::readImageFile("../../img/earthmap1k.jpg");
+/*
+	osg::Image *image = osgDB::readImageFile("../img/earthmap1k.jpg");
 	osg::Texture2D *texture = new osg::Texture2D;
 	texture->setDataVariance(osg::Object::DYNAMIC);
 	texture->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR);
@@ -131,7 +131,7 @@ void osg_widget::initializeGL()
 	texture->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP);
 	texture->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP);
 	texture->setImage(image);
-	*/
+*/
 
 	//Enzymes
 	for  (size_t i = 0; i < group->getNumChildren()-1; ++i)
@@ -227,7 +227,7 @@ void osg_widget::brownian_move()
 		auto pos = transform->getPosition() + osg::Vec3(x,y,z);
 
 
-		if(std::pow(pos.x(),2)+std::pow(pos.y(),2)+std::pow(pos.z(),2) < std::pow(m_radiusCells - m_radiusEnzyme,2))
+		if(std::pow(pos.x(),2)+std::pow(pos.y(),2)+std::pow(pos.z(),2) < std::pow(m_radiusCells - m_radiusMolecule,2))
 		{
 			transform->setPosition(pos);
 		}

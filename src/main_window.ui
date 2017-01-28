@@ -32,11 +32,36 @@
      <height>22</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuFichier">
+    <property name="title">
+     <string>Fichier</string>
+    </property>
+    <addaction name="actionOuvrir"/>
+   </widget>
+   <widget class="QMenu" name="menuAide">
+    <property name="title">
+     <string>Aide</string>
+    </property>
+    <addaction name="actionInfo"/>
+    <addaction name="actionLisez_moi"/>
+   </widget>
+   <addaction name="menuFichier"/>
+   <addaction name="menuAide"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionYOLO">
+  <action name="actionOuvrir">
    <property name="text">
-    <string>YOLO</string>
+    <string>Ouvrir</string>
+   </property>
+  </action>
+  <action name="actionInfo">
+   <property name="text">
+    <string>Info</string>
+   </property>
+  </action>
+  <action name="actionLisez_moi">
+   <property name="text">
+    <string>Lisez-moi</string>
    </property>
   </action>
  </widget>

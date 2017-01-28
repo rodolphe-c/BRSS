@@ -14,36 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with BRSS. If not, see <http://www.gnu.org/licenses/>
 
-#ifndef MAIN_WINDOW_HPP
-#define MAIN_WINDOW_HPP
+molecule m1,m2,m3,m4,m5,m6,m7,m8; // identificateur du type de molécule [a-zA-Z][a-zA-Z0-9]*
 
-#include <QMainWindow>
-#include <QTimer>
-#include <QTime>
+dimension 1000; // dimension en nm  [0-9][0-9]*
 
-namespace Ui {
-	class main_window;
-}
+taille(m1) = 5; // diametre entre 1 et 10 nm
+vitesse(m1) = 0.08; // probabilité de diffusion d'une distance de 10nm (entre 0 et 1)
 
-class main_window : public QMainWindow
-{
-	Q_OBJECT
+popinit(m1) = 2508; // nombre d'exemplaire de l'espèce m1
 
-public:
-	explicit main_window(QWidget *parent = 0);
-	~main_window();
-
-public slots:
-	void draw();
-
-private:
-	Ui::main_window *ui;
-	QVector<double> x, y;
-	double cpt;
-
-	//update loop
-	QTime time;
-	double lastElapsed = 0;
-};
-
-#endif // MAIN_WINDOW_HPP
+m1 + m2 -> m3 + m4 [0.04]; //probabilité à chaque collision (réaction bimoléculaire)
+m1 + m8 -> m5 [0.3]; // probabilité à chaque collision (réaction bimoléculaire)
+m5 -> m1 + m8[0.005]; // à chaque pas de temps on teste si la molécule se divise (réaction monomoléculaire)
+m6 -> m7 [0.003]; // à chaque pas de temps on teste si la molécule se divise (réaction monomoléculaire)

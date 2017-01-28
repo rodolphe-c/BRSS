@@ -1,4 +1,4 @@
-# Copyright � 2017 Rodolphe Cargnello, rodolphe.cargnello@gmail.com
+# Copyright © 2017 Rodolphe Cargnello, rodolphe.cargnello@gmail.com
 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,21 +19,21 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Release
-    if (RELEASE OR DEBUG STREQUAL "FALSE")
-		set(RELEASE "TRUE")
-	endif()
+if (RELEASE OR DEBUG STREQUAL "FALSE")
+	set(RELEASE "TRUE")
+endif()
 
 # Debug
-    if (DEBUG OR RELEASE STREQUAL "DEBUG" OR RELEASE STREQUAL "FALSE")
-		set(RELEASE "FALSE")
-	endif()
+if (DEBUG OR RELEASE STREQUAL "DEBUG" OR RELEASE STREQUAL "FALSE")
+	set(RELEASE "FALSE")
+endif()
 
 # add_definitions(-DWITH_PARALLEL)
 
 # General C++ flags
 
-    # General
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wconversion -Wsign-conversion -std=c++14 -pedantic")
+	# General
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wconversion -Wsign-conversion -std=c++11 -pedantic")
 
 	# Release / Debug flags
 	if (RELEASE)
@@ -42,81 +42,79 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g3")
 	endif()
 
-# Qt 5
-    message(STATUS "---")
-	find_package(Qt5Core REQUIRED)
-	find_package(Qt5Gui REQUIRED)
-	find_package(Qt5Widgets REQUIRED)
-	find_package(Qt5PrintSupport REQUIRED)
-	find_package(Qt5OpenGL REQUIRED)
+# Boost
+message(STATUS "---")
+find_package(Boost REQUIRED)
 
-	set(qt5_libraries Qt5::Core Qt5::Gui Qt5::Widgets Qt5::PrintSupport Qt5::OpenGL)
-	message(STATUS "Qt5 found =)")
-    link_libraries(${qt5_libraries})
+# Qt 5
+message(STATUS "---")
+find_package(Qt5Core REQUIRED)
+find_package(Qt5Gui REQUIRED)
+find_package(Qt5Widgets REQUIRED)
+find_package(Qt5PrintSupport REQUIRED)
+find_package(Qt5OpenGL REQUIRED)
+set(qt5_libraries Qt5::Core Qt5::Gui Qt5::Widgets Qt5::PrintSupport Qt5::OpenGL)
 
 # QCUSTOMPLOT
-    message(STATUS "---")
-	find_package(QCUSTOMPLOT REQUIRED)
+message(STATUS "---")
+find_package(QCUSTOMPLOT REQUIRED)
 
-	if(QCUSTOMPLOT_FOUND)
-		include_directories( ${QCUSTOMPLOT_INCLUDE_DIRS} )
-		link_libraries(${QCUSTOMPLOT_LIBRARIES})
-
-		message(STATUS "QCustomPlot found =)")
-    else()
-		message(STATUS "QCustomPlot not found! :(")
-	endif()
+if(QCUSTOMPLOT_FOUND)
+	include_directories( ${QCUSTOMPLOT_INCLUDE_DIRS} )
+	message(STATUS "QCustomPlot found =)")
+else()
+	message(STATUS "QCustomPlot not found! :(")
+endif()
 
 # OSG
-    message(STATUS "---")
-	find_package(OpenSceneGraph REQUIRED COMPONENTS osgDB osgGA osgUtil osgViewer)
+message(STATUS "---")
+find_package(OpenSceneGraph REQUIRED COMPONENTS osgDB osgGA osgUtil osgViewer)
 
 if(OSG_FOUND AND OSGDB_FOUND AND OSGGA_FOUND AND OSGUTIL_FOUND AND OSGVIEWER_FOUND)
 	include_directories( ${OPENSCENEGRAPH_INCLUDE_DIRS} )
-	link_libraries(${OPENSCENEGRAPH_LIBRARIES})
 	message(STATUS "OpenSceneGraph found =)")
 else()
 	message(STATUS "OpenSceneGraph not found! :(")
 endif()
 
 # Project
-    message(STATUS "---")
-	set(project_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/include")
-	include_directories("${project_INCLUDE}")
-	message(STATUS "Include project = ${project_INCLUDE}")
+message(STATUS "---")
+set(project_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+include_directories("${project_INCLUDE}")
+message(STATUS "Include project = ${project_INCLUDE}")
 
 
 # Compiler log
-    message(STATUS "---")
-	message(STATUS "C++ compiler = ${CMAKE_CXX_COMPILER}")
-	message(STATUS "C++ flags    = ${CMAKE_CXX_FLAGS}")
-	if (RELEASE)
-		message(STATUS "Release mode")
-	else()
-		message(STATUS "Debug mode")
-	endif()
+message(STATUS "---")
+message(STATUS "C++ compiler = ${CMAKE_CXX_COMPILER}")
+message(STATUS "C++ flags    = ${CMAKE_CXX_FLAGS}")
+if (RELEASE)
+	message(STATUS "Release mode")
+else()
+	message(STATUS "Debug mode")
+endif()
 
 # Sources
-
-    file(GLOB_RECURSE project_sources src/*.cpp)
+file(GLOB_RECURSE project_sources src/*.cpp)
+file(GLOB_RECURSE uis_forms src/*.ui)
 
 # Executables
+message(STATUS "---")
+add_executable("brss" "exe/brss.cpp" "${project_sources}" "${uis_forms}")
+target_link_libraries("brss" "${OPENSCENEGRAPH_LIBRARIES}" "${QCUSTOMPLOT_LIBRARIES}" "${qt5_libraries}")
 
-    file(GLOB_RECURSE uis_forms src/*.ui)
+# Test
+message(STATUS "---")
 
-	message(STATUS "---")
-
-	file(GLOB_RECURSE exes exe/*.cpp)
-
-	foreach(exe_source ${exes})
-
-		# Get exe name and source
-		string(REPLACE ".cpp" "" exe_name ${exe_source})
-		string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/exe/" "" exe_name ${exe_name})
-		string(REPLACE "/" "_" exe_name ${exe_name})
-
-		message(STATUS "Add exe ${exe_name}")
-
-		add_executable(${exe_name} "${exe_source}" "${project_sources}" "${uis_forms}")
-
+if (DISABLE_TESTS)
+	message(STATUS "Tests are disabled")
+else()
+	file(GLOB_RECURSE tests tests/*.cpp)
+	foreach(test_source ${tests})
+		string(REPLACE ".cpp" "" test_name ${test_source})
+		string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/tests/" "test__" test_name ${test_name})
+		string(REPLACE "/" "_" test_name ${test_name})
+		message(STATUS "Add test ${test_name}")
+		add_executable(${test_name} "${test_source}")
 	endforeach()
+endif()
