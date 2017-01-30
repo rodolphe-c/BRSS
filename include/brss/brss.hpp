@@ -26,8 +26,11 @@ namespace brss
 	constexpr size_t version_minor() { return 0; }
 	constexpr size_t version_patch() { return 0; }
 
-	inline std::string version() { return std::to_string(version_major())+"."+std::to_string(version_minor())+"."+std::to_string(version_patch()); }
-	inline std::string codename() { return "Let's start simulation !"; }
+	inline
+	std::string version() { return std::to_string(version_major())+"."+std::to_string(version_minor())+"."+std::to_string(version_patch()); }
+
+	inline 
+	std::string codename() { return "Let's start simulation !"; }
 }
 
 #endif

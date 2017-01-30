@@ -27,8 +27,6 @@ int main(int argc, char** argv)
 {
 	std::vector<std::string> args (argv, argv+argc);
 
-	std::vector<std::string const> const definitions {{"molecule","dimension","taille","vitesse","popinit"}};
-
 	if(argc <=1)
 	{
 		std::cerr << "\033[31mError 1:\033[0m Too few arguments, you need to give a brss file as parameter." << std::endl;
@@ -39,7 +37,7 @@ int main(int argc, char** argv)
 		try
 		{
 			if(isalpha('/')) { std::cout << "OK\n";}
-			auto tokens = brss::lex(args[1], definitions);
+			auto tokens = brss::lex(args[1]);
 
 			for (auto const & t : tokens)
 			{
@@ -47,9 +45,9 @@ int main(int argc, char** argv)
 			}
 
 		}
-		catch (std::string const & e)
+		catch (hopp::vector2<std::string> const & e)
 		{
-			std::cerr << e << std::endl;
+			std::cerr << "\033[31m" << e.x << "\033[0m " << e.y << std::endl;
 			exit(2);
 		}
 	}
@@ -77,6 +75,6 @@ std::string to_string(brss::token_t const t)
 std::ostream & operator<<(std::ostream & o, brss::type_t const & type)
 {
 	auto str =  boost::lexical_cast<std::string>(type.value);
-	o << "{"+to_string(type.token)+", '" + str + "' }";
+	o << "{"+to_string(type.token)+", '" + str + "'}";
 	return o;
 }

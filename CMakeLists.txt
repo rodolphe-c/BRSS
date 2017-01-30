@@ -100,6 +100,7 @@ file(GLOB_RECURSE uis_forms src/*.ui)
 
 # Executables
 message(STATUS "---")
+message(STATUS "Add exe brss")
 add_executable("brss" "exe/brss.cpp" "${project_sources}" "${uis_forms}")
 target_link_libraries("brss" "${OPENSCENEGRAPH_LIBRARIES}" "${QCUSTOMPLOT_LIBRARIES}" "${qt5_libraries}")
 

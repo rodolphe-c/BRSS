@@ -24,6 +24,8 @@
 #include <boost/variant.hpp>
 #include <boost/lexical_cast.hpp>
 
+#include "hopp/container/vector2.hpp"
+
 namespace brss
 {
 	enum class token_t
@@ -54,12 +56,14 @@ namespace brss
 
 	template <class T = std::string const>
 	inline
-	std::vector<type_t> lex(std::string const & filename, std::vector<T> const & definitions)
+	std::vector<type_t> lex(std::string const & filename)
 	{
+		std::vector<std::string const> const definitions {{"molecule", "dimension", "taille", "vitesse", "couleur", "rgb", "popinit" }};
+
 		std::ifstream file(filename);
 		if (!file.good())
 		{
-			throw std::string("\033[31mFile error:\033[0m The file '" + filename + "' can't be opened.");
+			throw hopp::vector2<std::string> ("File error:", "The file '" + filename + "' can't be opened.");
 		}
 		std::vector<type_t> types;
 		int etape = 1;
@@ -72,7 +76,6 @@ namespace brss
 
 		while (file.good())
 		{
-			col++;
 			char c = char(file.peek());
 			if (!file.good()) {file.close(); break;}
 			switch (etape)
@@ -94,13 +97,19 @@ namespace brss
 					else if (c == '/') {etape = 3; file.get();}
 					else if(std::isalpha(c)){etape = 5; tmp = c; file.get();}
 					else if(std::isdigit(c)){etape = 6; tmp = c; file.get();}
-					else {error = "Invalid char ("+std::to_string(c)+")."; etape = -1;}
+					else
+					{
+						error = "Invalid char ("+std::to_string(c)+").";
+						throw hopp::vector2<std::string> ("Lexical error l." + std::to_string(line) + ", c." + std::to_string(col)+":", error);
+					}
+					col++;
 					continue;
 				}
 				case 2:
 				{
 					if(c == '>')
 					{
+						col++;
 						types.push_back(type_t(token_t::ARROW, "->"));
 						etape = 1;
 					}
@@ -147,25 +156,23 @@ namespace brss
 				}
 				case 6:
 				{
-					if (c == '.') {tmp+='.'; etape = 7;}
-					else if (!std::isdigit(c)){etape = 1;}
+					while(std::isdigit(char(file.peek())))
+					{
+						col++;
+						c = char(file.get());
+						tmp += c;
+					}
+					if (char(file.peek()) == '.') {tmp+='.'; etape = 7; col++; file.get();}
 					else
 					{
-						while(std::isdigit(char(file.peek())))
-						{
-							col++;
-							c = char(file.get());
-							tmp += c;
-						}
 						types.push_back(type_t(token_t::INTEGER, std::stoi(tmp)));
 						etape = 1;
 					}
-					file.get();
 					continue;
 				}
 				case 7:
 				{
-					if (std::isdigit(c))
+					if (std::isdigit(char(file.peek())))
 					{
 						while(std::isdigit(char(file.peek())))
 						{
@@ -175,15 +182,19 @@ namespace brss
 						}
 						types.push_back(type_t(token_t::FLOAT, std::stof(tmp)));
 						etape = 1;
-						file.get();
 					}
 					else
-					{error = "Invalid char ("+std::to_string(c)+"). Need a digit after '.'.";etape = -1;}
+					{
+						error = "Invalid char ("+std::to_string(c)+"). Need a digit after '.'.";
+						throw hopp::vector2<std::string> ("Lexical error l." + std::to_string(line) + ", c." + std::to_string(col)+":", error);
+					}
 					continue;
 				}
-				default: throw(std::string("\033[31mLexical error l." + std::to_string(line) + ", c." + std::to_string(col-1)+":\033[0m ")+ error);
+				default:
+				{
+					throw hopp::vector2<std::string> ("Lexical error l." + std::to_string(line) + ", c." + std::to_string(col)+":", error);
+				}
 			}
-
 		}
 		return types;
 	}
