@@ -314,7 +314,7 @@ void osg_widget::brownian_move()
 
 		std::random_device rd;
 		std::mt19937 gen(rd());
-		std::uniform_int_distribution<int> dis(-10, 10);
+		std::uniform_real_distribution<float> dis(-10.f, 10.f);
 
 		float x = dis(gen);
 		float y = dis(gen);

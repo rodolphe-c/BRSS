@@ -20,7 +20,7 @@ endif()
 if (APPLE)
     set(ICON_FILE ${RESOURCE_FOLDER}/${ICON_NAME}.icns)
 elseif (WIN32)
-    set(ICON_FILE ${RESOURCE_FOLDER}/${ICON_NAME}.ico)
+    set(ICON_FILE ${PROJECT_SOURCE_DIR}/${RESOURCE_FOLDER}/${ICON_NAME}.ico)
 endif()
 
 if (WIN32)
