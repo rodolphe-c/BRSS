@@ -314,23 +314,16 @@ void osg_widget::brownian_move()
 
 		std::random_device rd;
 		std::mt19937 gen(rd());
-		std::uniform_int_distribution<int> dis(0, 360);
+		std::uniform_int_distribution<int> dis(-10, 10);
 
-		float ax = osg::DegreesToRadians(dis(gen));
-		float ay = osg::DegreesToRadians(dis(gen));
-		float az = osg::DegreesToRadians(dis(gen));
-
-		float d = 10.f;
-
-		float x = d*cos(ax)
-		float y =
-		float z =
+		float x = dis(gen);
+		float y = dis(gen);
+		float z = dis(gen);
 
 		auto pos = transform->getPosition() + osg::Vec3(x,y,z);
 
 		if(std::pow(pos.x(),2)+std::pow(pos.y(),2)+std::pow(pos.z(),2) < std::pow(m_radiusCells - m_radiusMolecule,2))
 		{
-
 			transform->setPosition(pos);
 		}
 	}
