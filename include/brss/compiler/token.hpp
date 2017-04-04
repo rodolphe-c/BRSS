@@ -47,7 +47,7 @@ namespace brss
 	struct expression_t
 	{
 		token_t token;
-		boost::variant<char, float, int, std::string> value;
+		boost::variant<char, float, size_t, std::string> value;
 		size_t line;
 		size_t col;
 

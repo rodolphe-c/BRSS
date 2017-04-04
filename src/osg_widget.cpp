@@ -16,9 +16,11 @@
 
 
 #include <random>
+#include <cmath>
 
 #include <QMouseEvent>
 #include <QWheelEvent>
+#include <QMessageBox>
 
 #include <osg/Group>
 #include <osg/Math>
@@ -33,12 +35,73 @@
 #include <osg/Object>
 #include <osg/CullFace>
 
-#include<cmath>
-
-#include "hopp/random.hpp"
 #include "osg_widget.hpp"
 
-osg_widget::osg_widget(QWidget *parent, double const scaleX, double const scaleY):
+#include "program.hpp"
+
+
+//http://stackoverflow.com/questions/20433443/creating-a-sphere-using-osggeometry-in-openscenegraph
+osg::ref_ptr<osg::Geode> buildSphere( float const radius, osg::Vec4 const & color, size_t const rings = 10, size_t const sectors= 10)
+{
+	osg::ref_ptr<osg::Geode>      sphereGeode = new osg::Geode;
+	osg::ref_ptr<osg::Geometry>   sphereGeometry = new osg::Geometry;
+	osg::ref_ptr<osg::Vec3Array>  sphereVertices = new osg::Vec3Array;
+	osg::ref_ptr<osg::Vec3Array>  sphereNormals = new osg::Vec3Array;
+	osg::ref_ptr<osg::Vec2Array>  sphereTexCoords = new osg::Vec2Array;
+	osg::ref_ptr<osg::Vec4Array>  sphereColors = new osg::Vec4Array;
+
+	float const R = 1.f/float(rings - 1);
+	float const S = 1.f/float(sectors - 1);
+
+	sphereGeode->addDrawable(sphereGeometry);
+
+	// Establish texture coordinates, vertex list, and normals
+	for(size_t r = 0; r < rings; ++r)
+	{
+		for(size_t s = 0; s < sectors; ++s)
+		{
+			float const y = float(sin( -M_PI_2 + M_PI * r * R));
+			float const x = float(cos( 2 * M_PI * s * S) * sin( M_PI * r * R ));
+			float const z = float(sin( 2 * M_PI * s * S) * sin( M_PI * r * R ));
+
+			sphereTexCoords->push_back(osg::Vec2(s * R, r * R));
+
+			sphereVertices->push_back (osg::Vec3( x * radius,
+			                                      y * radius,
+			                                      z * radius));
+			sphereNormals->push_back  ( osg::Vec3( x, y, z ) );
+			sphereColors->push_back(color);
+		}
+	}
+
+	sphereGeometry->setVertexArray  (sphereVertices);
+	sphereGeometry->setTexCoordArray(0, sphereTexCoords);
+	sphereGeometry->setColorArray(sphereColors);
+	sphereGeometry->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
+
+	// Generate quads for each face.
+	for(size_t r = 0; r < rings - 1; ++r)
+	{
+		for(size_t s = 0; s < sectors - 1; ++s)
+		{
+			osg::ref_ptr<osg::DrawElementsUInt> face =
+			        new osg::DrawElementsUInt( osg::PrimitiveSet::QUADS,
+			                                   4 )
+			;
+			// Corners of quads should be in CCW order.
+			face->push_back(unsigned((r + 0) * sectors + (s + 0)));
+			face->push_back(unsigned((r + 0) * sectors + (s + 1)));
+			face->push_back(unsigned((r + 1) * sectors + (s + 1)));
+			face->push_back(unsigned((r + 1) * sectors + (s + 0)));
+
+			sphereGeometry->addPrimitiveSet(face);
+		}
+	}
+
+	return sphereGeode;
+}
+
+osg_widget::osg_widget(std::string const & filename, QWidget *parent, double const scaleX, double const scaleY):
 	QGLWidget(parent),
 	m_window
 	(
@@ -47,6 +110,32 @@ osg_widget::osg_widget(QWidget *parent, double const scaleX, double const scaleY
 	m_scaleX(scaleX),
 	m_scaleY(scaleY)
 {
+	try
+	{
+		std::vector<brss::error_t> warnings;
+		prog = brss::parser(brss::lex(filename), warnings);
+
+		if(warnings.size() > 0)
+		{
+			QString msg ("");
+			for (auto const & e : warnings)
+			{
+				msg+= QString("<font color='#d8a70d'>") + QString::fromStdString(e.first) + QString("</font><p>")
+					+  QString::fromStdString(e.second) + QString("</p></br>");
+			}
+			QMessageBox::warning(nullptr, "Attention !", msg);
+		}
+	}
+	catch (brss::error_t const & e)
+	{
+		auto msg = QString("<font color='#ff0000'>ERROR ") + QString::fromStdString(e.first) + QString("</font><p>") + QString::fromStdString(e.second);
+		QMessageBox::critical(nullptr, "Echec de compilation", msg);
+		exit(1);
+	}
+
+	m_radiusCells = float(prog.dimension)/2;
+	m_radiusMolecule = 5.f;
+
 
 	m_viewer =new osgViewer::Viewer;
 
@@ -54,35 +143,52 @@ osg_widget::osg_widget(QWidget *parent, double const scaleX, double const scaleY
 
 	// Cellule
 	{
-		osg::ref_ptr<osg::Sphere> sphere    = new osg::Sphere( osg::Vec3( 0.f, 0.f, 0.f ), m_radiusCells);
-		osg::ref_ptr<osg::ShapeDrawable> sd = new osg::ShapeDrawable( sphere );
-		sd->setColor(osg::Vec4(1.f,1.f,1.f,1.f));
-		osg::ref_ptr<osg::Geode> cellule = new osg::Geode;
-		cellule->addDrawable(sd);
+		osg::ref_ptr<osg::Geode> cellule = buildSphere(m_radiusCells, osg::Vec4(1.f,1.f,1.f,0.2f), 30, 30);
 		m_group->addChild(cellule);
 	}
 
-	// Enzymes
-	for  (size_t k = 0; k < 10; ++k)
+	size_t id = 0;
+	for(auto const & m : prog.molecules_index)
 	{
-		for (size_t j = 0; j < 10; ++j)
+		molecules_id.push_back(std::vector<molecule>());
+		for (size_t i = 0; i < m.get().popinit; ++i)
 		{
-			for (size_t i = 0; i < 10; ++i)
-			{
-				osg::ref_ptr<osg::Geode> enzyme = new osg::Geode;
-				osg::ref_ptr<osg::ShapeDrawable> obj = new osg::ShapeDrawable;
-				obj->setShape(new osg::Sphere(osg::Vec3(0,0,0), m_radiusMolecule));
-				obj->setColor(osg::Vec4(float((i+j+k)%2),1-float((i+j+k)%2%2),0.f,1.f));
-				enzyme->addDrawable(obj.get());
+			//molecules_id[i].push_back(molecule(id, m.get().id, m.get().velocity));
+			m_molecules.push_back(molecule(id, m.get().id, m.get().velocity));
+			id++;
+		}
+	}
 
+	auto size = std::pow(m_molecules.size(), 1.f/3.f);
+	size_t cpt = 0;
+
+	// Enzymes
+	for (size_t k = 0; k < size; ++k)
+	{
+		for (size_t j = 0; j < size; ++j)
+		{
+			for (size_t i = 0; i < size; ++i)
+			{
+				if(cpt >= m_molecules.size())
+				{
+					break;
+				}
+
+				auto radius = prog.molecules_index[m_molecules.at(cpt).type].get().taille/2;
+				auto c = prog.molecules_index[m_molecules.at(cpt).type].get().couleur;
+
+				auto color = osg::Vec4(float(c[0]/255),float(c[1]/255),float(c[2]/255),1.f);
+				osg::ref_ptr<osg::Geode> enzyme = buildSphere(radius, color);
 				osg::ref_ptr<osg::PositionAttitudeTransform> transform = new osg::PositionAttitudeTransform;
-				auto mat = osg::Matrix::translate(-10.0, -10.0, -10.0);
-				auto pos = osg::Vec3(float(i)*2.f+m_radiusMolecule, float(j)*2.f+m_radiusMolecule, float(k)*2.f+m_radiusMolecule) * mat;
+				auto mat = osg::Matrix::translate(-size*m_radiusMolecule, -size*m_radiusMolecule, -size*m_radiusMolecule);
+				auto pos = osg::Vec3(float(i)*2.f*m_radiusMolecule, float(j)*2.f*m_radiusMolecule, float(k)*2.f*m_radiusMolecule) * mat;
 
 				transform->setPosition(pos);
 				transform->addChild(enzyme);
 
 				m_group->addChild(transform);
+
+				cpt++;
 			}
 		}
 	}
@@ -114,37 +220,24 @@ void osg_widget::initializeGL()
 		osg::ref_ptr<osg::Group> geode = dynamic_cast<osg::Geode*>(group->getChild(0));
 		osg::ref_ptr<osg::StateSet> stateSet = geode->getOrCreateStateSet();
 		osg::ref_ptr<osg::Material> material = new osg::Material;
-		material->setAlpha(osg::Material::FRONT_AND_BACK, 0.4f);
+		material->setAlpha(osg::Material::FRONT_AND_BACK, 0.2f);
 		stateSet->setAttributeAndModes( material.get(), osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
 		osg::ref_ptr<osg::BlendFunc> bf = new osg::BlendFunc(osg::BlendFunc::SRC_ALPHA,osg::BlendFunc::ONE_MINUS_SRC_ALPHA );
 		stateSet->setAttributeAndModes(bf.get());
 		stateSet->setAttributeAndModes(new osg::CullFace(osg::CullFace::FRONT));
 		stateSet->setAttributeAndModes(new osg::CullFace(osg::CullFace::BACK));
+		stateSet->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+		stateSet->setMode( GL_DEPTH_TEST, osg::StateAttribute::ON);
 	}
-
-/*
-	osg::Image *image = osgDB::readImageFile("../img/earthmap1k.jpg");
-	osg::Texture2D *texture = new osg::Texture2D;
-	texture->setDataVariance(osg::Object::DYNAMIC);
-	texture->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR);
-	texture->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
-	texture->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP);
-	texture->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP);
-	texture->setImage(image);
-*/
 
 	//Enzymes
 	for  (size_t i = 0; i < group->getNumChildren()-1; ++i)
 	{
 		osg::ref_ptr<osg::PositionAttitudeTransform> transform = dynamic_cast<osg::PositionAttitudeTransform*>(group->getChild(unsigned(i+1)));
-
 		osg::ref_ptr<osg::Group> geode = dynamic_cast<osg::Geode*>(transform->getChild(0));
 		osg::ref_ptr<osg::StateSet> stateSet = geode->getOrCreateStateSet();
-		osg::Material* material = new osg::Material;
-		material->setColorMode( osg::Material::DIFFUSE);
-		stateSet->setAttribute(material);
-		//stateSet->setTextureAttributeAndModes(0, texture, osg::StateAttribute::ON);
-		stateSet->setMode( GL_DEPTH_TEST, osg::StateAttribute::ON );
+		stateSet->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+		stateSet->setMode( GL_DEPTH_TEST, osg::StateAttribute::ON);
 	}
 }
 
@@ -164,7 +257,6 @@ void osg_widget::paintGL()
 		m_viewer->frame();
 	}
 }
-
 
 osgGA::EventQueue* osg_widget::getEventQueue() const
 {
@@ -220,17 +312,26 @@ void osg_widget::brownian_move()
 	{
 		osg::ref_ptr<osg::PositionAttitudeTransform> transform = dynamic_cast<osg::PositionAttitudeTransform*>(m_group->getChild(unsigned(i+1)));
 
-		float x = float(hopp::random::uniform(0,2000)-1000.f)/5000;
-		float y = float(hopp::random::uniform(0,2000)-1000.f)/5000;
-		float z = float(hopp::random::uniform(0,2000)-1000.f)/5000;
+		std::random_device rd;
+		std::mt19937 gen(rd());
+		std::uniform_int_distribution<int> dis(0, 360);
+
+		float ax = osg::DegreesToRadians(dis(gen));
+		float ay = osg::DegreesToRadians(dis(gen));
+		float az = osg::DegreesToRadians(dis(gen));
+
+		float d = 10.f;
+
+		float x = d*cos(ax)
+		float y =
+		float z =
 
 		auto pos = transform->getPosition() + osg::Vec3(x,y,z);
 
-
 		if(std::pow(pos.x(),2)+std::pow(pos.y(),2)+std::pow(pos.z(),2) < std::pow(m_radiusCells - m_radiusMolecule,2))
 		{
+
 			transform->setPosition(pos);
 		}
-
 	}
 }

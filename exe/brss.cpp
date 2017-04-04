@@ -16,25 +16,43 @@
 
 #include <QApplication>
 #include <QMainWindow>
+#include <QFileDialog>
 
 #include "brss/brss.hpp"
-
 #include "../src/main_window.hpp"
 
 int main( int argc, char** argv )
 {
-	QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-
 	QApplication application( argc, argv );
+	application.setAttribute(Qt::AA_EnableHighDpiScaling);
 	application.setApplicationName(QApplication::tr("BRSS"));
 	application.setOrganizationName("BRSS");
 	application.setOrganizationDomain("https://github.com/rodolphe-c/BRSS");
 	application.setApplicationVersion(QString::fromStdString(brss::version()));
 
-	main_window window;
+	if (application.arguments().count() > 1)
+	{
+		main_window window (application.arguments().at(1).toStdString());
 
-	window.setWindowTitle("BRSS");
-	window.show();
+		window.setWindowTitle("BRSS");
+		window.setWindowIcon(QIcon(":/img/brss128.png"));
+		window.show();
 
-	return( application.exec() );
+		return(application.exec());
+	}
+	else
+	{
+		auto fileName = QFileDialog::getOpenFileName
+		(
+			nullptr, QObject::tr("Sélectionner un programme"),
+			QDir::currentPath(), QObject::tr("Programme (*.mcl)")
+		);
+
+		main_window window (fileName.toStdString());
+		window.setWindowTitle("BRSS");
+		window.setWindowIcon(QIcon(":/img/brss128.png"));
+		window.show();
+
+		return( application.exec() );
+	}
 }

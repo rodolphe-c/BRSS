@@ -17,6 +17,19 @@
 #include "brss/compiler.hpp"
 
 
+template <class T>
+std::ostream & operator<<(std::ostream & out, std::vector<T> const & v)
+{
+	out << "{ ";
+	for (auto const & n : v)
+	{
+		out << n << "; ";
+	}
+	out << "}";
+	return out;
+}
+
+
 int main(int argc, char** argv)
 {
 	std::vector<std::string> args (argv, argv+argc);
@@ -30,18 +43,27 @@ int main(int argc, char** argv)
 	{
 		try
 		{
-			brss::parser(brss::lex(args[1]));
+			std::vector<brss::error_t> warnings;
+			auto p = brss::parser(brss::lex(args[1]), warnings);
+
+			for (auto const & w : warnings)
+			{
+				std::cout << "\033[1;33m" << w.first << "\033[0m " <<  w.second;
+			}
+
+			for(std::map<std::string, brss::molecule_type>::iterator it = p.molecules.begin(); it != p.molecules.end(); ++it)
+			{
+				std::cout << it->first << " : " << it->second << "\n";
+			}
+
+			for (auto m : p.reactions)
+			{
+				std::cout << m << std::endl;
+			}
 		}
-		catch (brss::exception const & e)
+		catch (std::pair<std::string, std::string> const & e)
 		{
-			if (e.value.first == brss::exception_t::ERROR)
-			{
-				std::cerr << "\033[31mERROR " << e.value.second.x << "\033[0m " << e.value.second.y << std::endl;
-			}
-			else
-			{
-				std::cerr << "\033[33mWARNING " << e.value.second.x << "\033[0m " << e.value.second.y << std::endl;
-			}
+			std::cerr << "\033[1;31mERROR " << e.first << "\033[0m " << e.second << std::endl;
 			exit(2);
 		}
 	}

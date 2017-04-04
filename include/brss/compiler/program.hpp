@@ -18,15 +18,22 @@
 #define BRSS_COMPILER_PROGRAM_HPP
 
 #include <map>
+#include <vector>
+#include <functional>
 
 #include "molecule_type.hpp"
+#include "reaction.hpp"
 
 namespace brss
 {
 	struct program
 	{
 		std::map<std::string, molecule_type> molecules;
-		unsigned int dimension;
+		std::vector<std::reference_wrapper<molecule_type>> molecules_index;
+		size_t dimension;
+
+		std::array<std::array<std::vector<reaction>, 100>, 100> reactions_matrix;
+		std::vector<reaction> reactions;
 	};
 }
 

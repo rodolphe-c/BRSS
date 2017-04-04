@@ -21,17 +21,19 @@
 #include <vector>
 #include <map>
 
-#include "exception.hpp"
+#include "token.hpp"
 
 namespace brss
 {
+	using error_t = std::pair<std::string, std::string>;
+
 	inline
 	std::vector<brss::expression_t> lex(std::string const & filename)
 	{
 		std::ifstream file(filename);
 		if (!file.good())
 		{
-			throw brss::exception(brss::exception_t::ERROR, hopp::vector2<std::string> ("File stream:", "The file '" + filename + "' cannot be opened."));
+			throw error_t ("File stream:", "The file '" + filename + "' cannot be opened.");
 		}
 
 		std::vector<brss::expression_t> types;
@@ -69,7 +71,7 @@ namespace brss
 					else
 					{
 						error = "Invalid char ("+std::to_string(c)+").";
-						throw brss::exception(brss::exception_t::ERROR, hopp::vector2<std::string> ("Lex l." + std::to_string(line) + ", c." + std::to_string(col)+":", error));
+						throw error_t ("Lex l." + std::to_string(line) + ", c." + std::to_string(col)+":", error);
 					}
 					col++;
 					continue;
@@ -134,7 +136,7 @@ namespace brss
 					if (char(file.peek()) == '.') {tmp+='.'; state = 7; col++; file.get();}
 					else
 					{
-						types.push_back(expression_t(token_t::INTEGER, std::stoi(tmp), line, col - tmp.size()));
+						types.push_back(expression_t(token_t::INTEGER, size_t(std::stoi(tmp)), line, col - tmp.size()));
 						state = 1;
 					}
 					continue;
@@ -155,13 +157,13 @@ namespace brss
 					else
 					{
 						error = "Invalid char ("+std::to_string(c)+"). Need a digit after '.'.";
-						throw brss::exception(brss::exception_t::ERROR, hopp::vector2<std::string> ("Lex l." + std::to_string(line) + ", c." + std::to_string(col)+":", error));
+						throw error_t ("Lex l." + std::to_string(line) + ", c." + std::to_string(col)+":", error);
 					}
 					continue;
 				}
 				default:
 				{
-					throw brss::exception(brss::exception_t::ERROR, hopp::vector2<std::string> ("Lex l." + std::to_string(line) + ", c." + std::to_string(col)+":", error));
+					throw error_t ("Lex l." + std::to_string(line) + ", c." + std::to_string(col)+":", error);
 				}
 			}
 		}

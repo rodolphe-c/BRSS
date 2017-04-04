@@ -14,14 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with BRSS. If not, see <http://www.gnu.org/licenses/>
 
-#ifndef BRSS_COMPILER_HPP
-#define BRSS_COMPILER_HPP
+#ifndef BRSS_SIMULATOR_MOLECULE_HPP
+#define BRSS_SIMULATOR_MOLECULE_HPP
 
-#include "compiler/token.hpp"
-#include "compiler/molecule_type.hpp"
-#include "compiler/program.hpp"
-#include "compiler/reaction.hpp"
-#include "compiler/lexer.hpp"
-#include "compiler/parser.hpp"
+class molecule
+{
+private :
+	static size_t next_id;
 
-#endif
+public:
+	size_t type;
+	size_t id;
+	float velocity;
+
+public:
+	molecule(size_t const ident, size_t const type, float const v) : type(type),
+	id(ident),
+	velocity(v)
+	{}
+};
+
+#endif // MOLECULE_HPP

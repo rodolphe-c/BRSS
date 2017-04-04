@@ -1,4 +1,4 @@
-// Copyright � 2017 Rodolphe Cargnello, rodolphe.cargnello@gmail.com
+// Copyright © 2017 Rodolphe Cargnello, rodolphe.cargnello@gmail.com
 
 // This file is part of BRSS.
 
@@ -30,18 +30,19 @@
 #include <osgGA/TrackballManipulator>
 #include <osg/MatrixTransform>
 
-#include "brss/molecule.hpp"
+#include "brss/simulator/molecule.hpp"
 
 class osg_widget: public QGLWidget
 {
 Q_OBJECT
 
-private:
+public:
 	osg::ref_ptr<osgViewer::Viewer> m_viewer;
 	osg::ref_ptr<osgViewer::GraphicsWindowEmbedded> m_window;
 	osg::ref_ptr<osg::Group> m_group;
 
 	std::vector<molecule> m_molecules;
+	std::vector<std::vector<molecule>> molecules_id;
 
 	double m_scaleX, m_scaleY;
 	float m_radiusMolecule = 1.f;
@@ -49,7 +50,7 @@ private:
 	double m_degree = 1;
 
 public:
-	explicit osg_widget(QWidget *parent = 0, double const scaleX = 2.0, double const scaleY = 2.0);
+	explicit osg_widget(std::string const & filename, QWidget *parent = 0, double const scaleX = 2.0, double const scaleY = 2.0);
 
 protected:
 	void initializeGL();

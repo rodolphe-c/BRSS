@@ -26,8 +26,26 @@ Required:
 - C++11 compiler
 - [Boost] (http://www.boost.org/)
 - [Qt5](https://www.qt.io/)
+- [Qwt](http://qwt.sourceforge.net/)
 - [OpenSceneGraph](http://www.openscenegraph.org/)
-- [QCustomPlot](http://www.qcustomplot.com/)
+
+On macOS Sierra with Homebrew:
+
+```sh
+brew install boost --c++11
+brew install qt5
+brew install qwt
+brew install open-scene-graph --c++11 --with-qt5
+```
+
+On Ubuntu 16.10:
+
+```sh
+sudo apt install libboost-all-dev
+sudo apt install qttools5-dev
+sudo apt install libqwt-qt5-dev
+sudo apt install libopenscenegraph-3.4-dev
+```
 
 ### Compilation with CMake
 

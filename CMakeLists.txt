@@ -12,11 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-project(BRSS)
 cmake_minimum_required(VERSION 3.0.2)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+# Include Qt basic functions
+include(QtCommon)
+
+project(BRSS VERSION 0.0)
+fix_project_version()
+
+# Set additional project information
+set(COMPANY "Rodolphe Cargnello")
+set(COPYRIGHT "Copyright (c) 2017 Rodolphe Cargnello. All rights reserved.")
+set(IDENTIFIER "com.cargnello.BRSS")
+
+add_project_meta(META_FILES_TO_INCLUDE)
+
 
 # Release
 if (RELEASE OR DEBUG STREQUAL "FALSE")
@@ -33,7 +45,7 @@ endif()
 # General C++ flags
 
 	# General
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wconversion -Wsign-conversion -std=c++11 -pedantic")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wconversion -Wsign-conversion -Wuninitialized -std=c++11 -pedantic")
 
 	# Release / Debug flags
 	if (RELEASE)
@@ -55,15 +67,14 @@ find_package(Qt5PrintSupport REQUIRED)
 find_package(Qt5OpenGL REQUIRED)
 set(qt5_libraries Qt5::Core Qt5::Gui Qt5::Widgets Qt5::PrintSupport Qt5::OpenGL)
 
-# QCUSTOMPLOT
+# Qwt
 message(STATUS "---")
-find_package(QCUSTOMPLOT REQUIRED)
-
-if(QCUSTOMPLOT_FOUND)
-	include_directories( ${QCUSTOMPLOT_INCLUDE_DIRS} )
-	message(STATUS "QCustomPlot found =)")
+find_package(Qwt REQUIRED)
+if(QWT_FOUND)
+	include_directories( ${QWT_INCLUDE_DIR} )
+	message(STATUS "Qwt found =) ${QWT_INCLUDE_DIR}")
 else()
-	message(STATUS "QCustomPlot not found! :(")
+	message(STATUS "Qwt not found! :(")
 endif()
 
 # OSG
@@ -83,7 +94,6 @@ set(project_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 include_directories("${project_INCLUDE}")
 message(STATUS "Include project = ${project_INCLUDE}")
 
-
 # Compiler log
 message(STATUS "---")
 message(STATUS "C++ compiler = ${CMAKE_CXX_COMPILER}")
@@ -97,12 +107,14 @@ endif()
 # Sources
 file(GLOB_RECURSE project_sources src/*.cpp)
 file(GLOB_RECURSE uis_forms src/*.ui)
+set(rcc img/ressources.qrc)
 
 # Executables
 message(STATUS "---")
 message(STATUS "Add exe brss")
-add_executable("brss" "exe/brss.cpp" "${project_sources}" "${uis_forms}")
-target_link_libraries("brss" "${OPENSCENEGRAPH_LIBRARIES}" "${QCUSTOMPLOT_LIBRARIES}" "${qt5_libraries}")
+add_executable("brss" "${OS_BUNDLE}"
+"exe/brss.cpp" "${project_sources}" "${uis_forms}" "${META_FILES_TO_INCLUDE}" "${rcc}")
+target_link_libraries("brss" "${OPENSCENEGRAPH_LIBRARIES}" "${qt5_libraries}" "${QWT_LIBRARY}")
 
 # Test
 message(STATUS "---")

@@ -17,15 +17,59 @@
 #ifndef BRSS_COMPILER_MOLECULE_TYPE_HPP
 #define BRSS_COMPILER_MOLECULE_TYPE_HPP
 
+#include <random>
+#include <array>
+#include <cstdlib>
+#include <iostream>
+
 namespace brss
 {
 	class molecule_type
 	{
 	public :
-		unsigned int taille;
-		unsigned int popint;
-		float vitesse;
+		size_t id;
+		size_t taille;
+		size_t popinit;
+		float velocity;
+
+		std::array<int,3> couleur;
+		molecule_type(size_t const ident) : id(ident)
+		{
+			std::random_device rd;  //Will be used to obtain a seed for the random number engine
+			std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+			std::uniform_int_distribution<int> dis(0, 255);
+
+			int r = dis(gen);
+			int g = dis(gen);
+			int b = dis(gen);
+
+			couleur = {{r,g,b}};
+			taille = 0;
+			popinit = 0;
+			velocity = 0;
+		}
+
+		molecule_type()
+		{
+			id = 0;
+
+			couleur = {{0,0,0}};
+			taille = 0;
+			popinit = 0;
+			velocity = 0;
+		}
 	};
+
+	std::ostream& operator<<(std::ostream& os, molecule_type const & obj)
+	{
+		std::string tmp = "{ID: " + std::to_string(obj.id)
+							+ ", taille: " + std::to_string(obj.taille)
+							+ ", popinit: " + std::to_string(obj.popinit)
+							+ ", vitesse: " + std::to_string(obj.velocity)
+							+ ", couleur("+ std::to_string(obj.couleur[0]) + ", " + std::to_string(obj.couleur[1]) + ", "+ std::to_string(obj.couleur[2]) + ")}";
+		os << tmp;
+		return os;
+	}
 }
 
 #endif

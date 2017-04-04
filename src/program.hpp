@@ -14,14 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with BRSS. If not, see <http://www.gnu.org/licenses/>
 
-#ifndef BRSS_COMPILER_HPP
-#define BRSS_COMPILER_HPP
+#ifndef BRSS_PROGRAM_HPP
+#define BRSS_PROGRAM_HPP
 
-#include "compiler/token.hpp"
-#include "compiler/molecule_type.hpp"
-#include "compiler/program.hpp"
-#include "compiler/reaction.hpp"
-#include "compiler/lexer.hpp"
-#include "compiler/parser.hpp"
+#include "brss/compiler.hpp"
+
+brss::program prog;
 
 #endif

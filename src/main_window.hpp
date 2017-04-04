@@ -20,30 +20,39 @@
 #include <QMainWindow>
 #include <QTimer>
 #include <QTime>
+#include <QFrame>
 
-namespace Ui {
-	class main_window;
-}
+#include "../src/osg_widget.hpp"
+
+#include <qwt_plot.h>
+#include <qwt_plot_curve.h>
 
 class main_window : public QMainWindow
 {
 	Q_OBJECT
 
 public:
-	explicit main_window(QWidget *parent = 0);
+	explicit main_window(std::string const &, QWidget *parent = 0);
 	~main_window();
 
 public slots:
 	void draw();
 
+protected:
+	void resizeEvent(QResizeEvent* event);
+
 private:
-	Ui::main_window *ui;
-	QVector<double> x, y;
-	double cpt;
+	std::string filename;
+
+	QFrame * center;
+
+	osg_widget * osg;
+	QwtPlot * plot;
 
 	//update loop
 	QTime time;
-	double lastElapsed = 0;
+	double lastElapsedOsg = 0;
+	double lastElapsedPlot = 0;
 };
 
 #endif // MAIN_WINDOW_HPP
