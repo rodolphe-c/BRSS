@@ -62,6 +62,8 @@ public:
 	float m_radiusCells = 20.f;
 	double m_degree = 1;
 
+	bool visit = false;
+
 public:
 	explicit osg_widget(std::string const & filename, QWidget *parent = 0, double const scaleX = 2.0, double const scaleY = 2.0);
 

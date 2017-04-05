@@ -104,6 +104,36 @@ osg::ref_ptr<osg::Geode> buildSphere( float const radius, osg::Vec4 const & colo
 	return sphereGeode;
 }
 
+
+bool collision(osg::Vec3 const & pos1, float const r1,  osg::Vec3 const & pos2, float const r2)
+{
+	return std::pow(pos1.x() - pos2.x(),2)
+		 + std::pow(pos1.y() - pos2.y(),2)
+		 + std::pow(pos1.z() - pos2.z(),2) >= std::pow(r1 - r2, 2);
+}
+
+
+osg::ref_ptr<osg::PositionAttitudeTransform> make_molecule(brss::molecule_type const & mt, molecule const & m, osg::Vec3 const & pos)
+{
+	auto radius = mt.taille/2;
+	auto c = mt.couleur;
+	auto color = osg::Vec4(float(c[0]/255),float(c[1]/255),float(c[2]/255),1.f);
+
+	osg::ref_ptr<osg::Geode> enzyme = buildSphere(radius, color);
+	osg::ref_ptr<osg::PositionAttitudeTransform> transform = new osg::PositionAttitudeTransform;
+
+	enzyme->setName(std::to_string(m.id));
+	osg::ref_ptr<osg::StateSet> stateSet = enzyme->getOrCreateStateSet();
+	stateSet->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+	stateSet->setMode( GL_DEPTH_TEST, osg::StateAttribute::ON);
+
+	transform->setPosition(pos);
+	transform->addChild(enzyme);
+
+	return transform;
+}
+
+
 osg_widget::osg_widget(std::string const & filename, QWidget *parent, double const scaleX, double const scaleY):
 	QGLWidget(parent),
 	m_window
@@ -147,6 +177,18 @@ osg_widget::osg_widget(std::string const & filename, QWidget *parent, double con
 	// Cellule
 	{
 		osg::ref_ptr<osg::Geode> cellule = buildSphere(m_radiusCells, osg::Vec4(1.f,1.f,1.f,0.2f), 30, 30);
+
+		osg::ref_ptr<osg::StateSet> stateSet = cellule->getOrCreateStateSet();
+		osg::ref_ptr<osg::Material> material = new osg::Material;
+		material->setAlpha(osg::Material::FRONT_AND_BACK, 0.2f);
+		stateSet->setAttributeAndModes( material.get(), osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
+		osg::ref_ptr<osg::BlendFunc> bf = new osg::BlendFunc(osg::BlendFunc::SRC_ALPHA,osg::BlendFunc::ONE_MINUS_SRC_ALPHA );
+		stateSet->setAttributeAndModes(bf.get());
+		stateSet->setAttributeAndModes(new osg::CullFace(osg::CullFace::FRONT));
+		stateSet->setAttributeAndModes(new osg::CullFace(osg::CullFace::BACK));
+		stateSet->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+		stateSet->setMode( GL_DEPTH_TEST, osg::StateAttribute::ON);
+
 		m_group->addChild(cellule);
 	}
 
@@ -176,19 +218,10 @@ osg_widget::osg_widget(std::string const & filename, QWidget *parent, double con
 					break;
 				}
 
-				auto radius = prog.molecules_index[molecules.at(cpt).type].get().taille/2;
-				auto c = prog.molecules_index[molecules.at(cpt).type].get().couleur;
-
-				auto color = osg::Vec4(float(c[0]/255),float(c[1]/255),float(c[2]/255),1.f);
-				osg::ref_ptr<osg::Geode> enzyme = buildSphere(radius, color);
-				osg::ref_ptr<osg::PositionAttitudeTransform> transform = new osg::PositionAttitudeTransform;
 				auto mat = osg::Matrix::translate(-size*m_radiusMolecule, -size*m_radiusMolecule, -size*m_radiusMolecule);
 				auto pos = osg::Vec3(float(i)*2.f*m_radiusMolecule, float(j)*2.f*m_radiusMolecule, float(k)*2.f*m_radiusMolecule) * mat;
 
-				transform->setPosition(pos);
-				transform->addChild(enzyme);
-
-				m_group->addChild(transform);
+				m_group->addChild(make_molecule(prog.molecules_index[molecules[cpt].type].get(), molecules[cpt], pos));
 
 				cpt++;
 			}
@@ -214,34 +247,7 @@ osg_widget::osg_widget(std::string const & filename, QWidget *parent, double con
 }
 
 void osg_widget::initializeGL()
-{
-	osg::ref_ptr<osg::Group> group = dynamic_cast<osg::Group*>(m_viewer->getSceneData());
-
-	// Cellule
-	{
-		osg::ref_ptr<osg::Group> geode = dynamic_cast<osg::Geode*>(group->getChild(0));
-		osg::ref_ptr<osg::StateSet> stateSet = geode->getOrCreateStateSet();
-		osg::ref_ptr<osg::Material> material = new osg::Material;
-		material->setAlpha(osg::Material::FRONT_AND_BACK, 0.2f);
-		stateSet->setAttributeAndModes( material.get(), osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
-		osg::ref_ptr<osg::BlendFunc> bf = new osg::BlendFunc(osg::BlendFunc::SRC_ALPHA,osg::BlendFunc::ONE_MINUS_SRC_ALPHA );
-		stateSet->setAttributeAndModes(bf.get());
-		stateSet->setAttributeAndModes(new osg::CullFace(osg::CullFace::FRONT));
-		stateSet->setAttributeAndModes(new osg::CullFace(osg::CullFace::BACK));
-		stateSet->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
-		stateSet->setMode( GL_DEPTH_TEST, osg::StateAttribute::ON);
-	}
-
-	//Enzymes
-	for  (size_t i = 0; i < group->getNumChildren()-1; ++i)
-	{
-		osg::ref_ptr<osg::PositionAttitudeTransform> transform = dynamic_cast<osg::PositionAttitudeTransform*>(group->getChild(unsigned(i+1)));
-		osg::ref_ptr<osg::Group> geode = dynamic_cast<osg::Geode*>(transform->getChild(0));
-		osg::ref_ptr<osg::StateSet> stateSet = geode->getOrCreateStateSet();
-		stateSet->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
-		stateSet->setMode( GL_DEPTH_TEST, osg::StateAttribute::ON);
-	}
-}
+{}
 
 void osg_widget::resizeGL(int width, int height)
 {
@@ -308,22 +314,166 @@ bool osg_widget::event(QEvent* event)
 	return handled;
 }
 
+// Version Naive
 void osg_widget::brownian_move()
 {
-	for  (size_t i = 0; i < m_group->getNumChildren()-1; ++i)
+
+	std::vector<molecule> new_mols;
+	for  (size_t i = 0; i < molecules.size(); ++i)
 	{
-		osg::ref_ptr<osg::PositionAttitudeTransform> transform = dynamic_cast<osg::PositionAttitudeTransform*>(m_group->getChild(unsigned(i+1)));
-		std::uniform_real_distribution<float> dis(-10.f, 10.f);
-
-		float x = dis(gen);
-		float y = dis(gen);
-		float z = dis(gen);
-
-		auto pos = transform->getPosition() + osg::Vec3(x,y,z);
-
-		if(std::pow(pos.x(),2)+std::pow(pos.y(),2)+std::pow(pos.z(),2) < std::pow(m_radiusCells - m_radiusMolecule,2))
+		if (molecules[i].view)
 		{
-			transform->setPosition(pos);
+			continue;
+		}
+
+		std::uniform_real_distribution<float> r_0_1(0.f,1.f);
+		if(molecules[i].velocity <= r_0_1(gen))
+		{
+			osg::ref_ptr<osg::PositionAttitudeTransform> transform = dynamic_cast<osg::PositionAttitudeTransform*>(m_group->getChild(unsigned(molecules[i].id+1)));
+			std::uniform_int_distribution<int> dis(0, 360);
+
+			float distance = 10.f;
+			float alpha = float(dis(gen));
+			float beta = float(dis(gen));
+
+			float x = distance * float(sin(osg::DegreesToRadians(beta)) * cos(osg::DegreesToRadians(alpha)));
+			float y = distance * float(sin(osg::DegreesToRadians(alpha)) * sin(osg::DegreesToRadians(beta)));
+			float z = distance * float(cos(osg::DegreesToRadians(alpha)));
+
+			auto pos = transform->getPosition() + osg::Vec3(x,y,z);
+
+			for  (size_t j = 0; j < molecules.size(); ++j)
+			{
+				if (molecules[j].view)
+				{
+					continue;
+				}
+				if(i == j)
+				{
+					auto reactions = prog.reactions_matrix[molecules[i].type][molecules[j].type];
+					if(reactions.size() > 0)
+					{
+						auto index = rand()%reactions.size();
+						if(r_0_1(gen) <= reactions[index].proba)
+						{
+							molecules[i].view = true;
+							molecules.erase
+							(
+								std::remove_if(molecules.begin(), molecules.end(),
+								[&](molecule const & m){
+									return m.id == molecules[i].id;
+								}),
+								molecules.end()
+							);
+							dynamic_cast<osg::Geode*>(transform->getChild(0))->setNodeMask(0x0);
+
+							if(reactions[index].right_molecules.size() == 2)
+							{
+								auto pos = transform->getPosition();
+
+								auto type1 = reactions[index].right_molecules[0];
+								molecule m1 (molecules.size(), type1, molecules_types[type1].velocity);
+								new_mols.push_back(m1);
+								m_group->addChild(make_molecule(prog.molecules_index[type1].get(), m1, pos));
+
+								auto type2 = reactions[index].right_molecules[1];
+								molecule m2 (molecules.size(), type2, molecules_types[type2].velocity);
+								new_mols.push_back(m2);
+								m_group->addChild(make_molecule(prog.molecules_index[type2].get(), m2, pos));
+							}
+							else
+							{
+								auto pos = transform->getPosition();
+
+								auto type = reactions[index].right_molecules[0];
+								molecule m (molecules.size(), type, molecules_types[type].velocity);
+								new_mols.push_back(m);
+								m_group->addChild(make_molecule(prog.molecules_index[type].get(), m, pos));
+							}
+						}
+					}
+					continue;
+				}
+
+				osg::ref_ptr<osg::PositionAttitudeTransform> transform2 = dynamic_cast<osg::PositionAttitudeTransform*>(m_group->getChild(unsigned(molecules[j].id+1)));
+				if(collision(transform->getPosition(), molecules_types[molecules[i].type].size/2,
+						transform2->getPosition(), molecules_types[molecules[j].type].size/2))
+				{
+					auto reactions = prog.reactions_matrix[molecules[i].type][molecules[j].type];
+					if(reactions.size() > 0)
+					{
+						auto index = rand()%reactions.size();
+						if(r_0_1(gen) <= reactions[index].proba)
+						{
+							molecules[i].view = true;
+							molecules[j].view = true;
+							if(reactions[index].left_molecules.size() == 2)
+							{
+								molecules.erase
+								(
+									std::remove_if(molecules.begin(), molecules.end(),
+									[&](molecule const & m){
+										return m.id == molecules[i].id || m.id == molecules[j].id;
+									}),
+									molecules.end()
+								);
+								dynamic_cast<osg::Geode*>(transform->getChild(0))->setNodeMask(0x0);
+								dynamic_cast<osg::Geode*>(transform2->getChild(0))->setNodeMask(0x0);
+							}
+							else
+							{
+								molecules.erase
+								(
+									std::remove_if(molecules.begin(), molecules.end(),
+									[&](molecule const & m){
+										return m.id == molecules[i].id;
+									}),
+									molecules.end()
+								);
+								m_group->getChild(molecules[i].id+1)->setNodeMask(0x0);
+							}
+
+							if(reactions[index].right_molecules.size() == 2)
+							{
+								auto pos = transform2->getPosition();
+
+								auto type1 = reactions[index].right_molecules[0];
+								molecule m1 (molecules.size(), type1, molecules_types[type1].velocity);
+								new_mols.push_back(m1);
+								m_group->addChild(make_molecule(prog.molecules_index[type1].get(), m1, pos));
+
+								auto type2 = reactions[index].right_molecules[1];
+								molecule m2 (molecules.size(), type2, molecules_types[type2].velocity);
+								new_mols.push_back(m2);
+								m_group->addChild(make_molecule(prog.molecules_index[type2].get(), m2, pos));
+							}
+							else
+							{
+								auto pos = transform2->getPosition();
+
+								auto type = reactions[index].right_molecules[0];
+								molecule m (molecules.size(), type, molecules_types[type].velocity);
+								new_mols.push_back(m);
+								m_group->addChild(make_molecule(prog.molecules_index[type].get(), m, pos));
+							}
+						}
+					}
+				}
+			}
+
+			if(std::pow(pos.x(),2)+std::pow(pos.y(),2)+std::pow(pos.z(),2) < std::pow(m_radiusCells - molecules_types[molecules[i].type].size/2,2))
+			{
+				transform->setPosition(pos);
+			}
 		}
 	}
+	for (auto const & p : new_mols)
+	{
+		molecules.push_back(p);
+	}
+	for (auto & p : molecules)
+	{
+		p.view = false;
+	}
+	std::random_shuffle(molecules.begin(), molecules.end());
 }

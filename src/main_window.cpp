@@ -73,5 +73,6 @@ void main_window::draw()
 		lastDraw = elapsed;
 		plot->replot();
 	}
+	//plot->replot();
 	osg->update();
 }

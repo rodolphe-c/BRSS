@@ -26,11 +26,13 @@ public:
 	size_t type;
 	size_t id;
 	float velocity;
+	bool view;
 
 public:
 	molecule(size_t const ident, size_t const type, float const v) : type(type),
 	id(ident),
-	velocity(v)
+	velocity(v),
+	view(false)
 	{}
 };
 

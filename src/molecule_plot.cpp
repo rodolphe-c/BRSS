@@ -23,7 +23,7 @@ molecule_plot::molecule_plot(osg_widget * t, QWidget *parent):
 {
 	setAxisScale( QwtPlot::yLeft, 0.0, double(target->molecules.size()));
 	setTitle("Concentration des molécules");
-	setAxisScale(QwtPlot::xBottom, 0, 10000);
+	setAxisScale(QwtPlot::xBottom, 0, 5000);
 	setAxisTitle(QwtPlot::xBottom, "Temps (ns)");
 	setAxisTitle(QwtPlot::yLeft, "Molecules");
 
@@ -50,7 +50,7 @@ molecule_plot::molecule_plot(osg_widget * t, QWidget *parent):
 
 void molecule_plot::update(double const elapsed)
 {
-	if(elapsed > 10000)
+	if(elapsed > 5000)
 	{
 		setAxisScale(QwtPlot::xBottom, 0, elapsed);
 	}
