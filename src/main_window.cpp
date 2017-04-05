@@ -25,32 +25,24 @@ main_window::main_window(std::string const & f, QWidget *parent) :
 	filename(f),
 	time(QTime::currentTime())
 {
+	setWindowState(Qt::WindowMaximized);
+
 	center = new QFrame(this);
+	osg = new osg_widget(f, this);
+	plot = new molecule_plot(osg, this);
 
-	osg = new osg_widget(f);
+	osg->setMinimumHeight(200);
+	osg->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	plot->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
 
 
-	plot = new QwtPlot();
-	plot->setAxisScale( QwtPlot::yLeft, 0.0, double(osg->m_molecules.size()));
-
-	plot->setTitle("Concentration des molécules");
-
-	for (size_t i = 0; i < osg->molecules_id.size(); ++i)
-	{
-		std::string name = "Curve " + std::to_string(i);
-		QwtPlotCurve *curve = new QwtPlotCurve(name.c_str());
-		curve->attach(plot);
-	}
-
-	showMaximized();
 
 	QVBoxLayout *layout = new QVBoxLayout();
 	layout->addWidget(osg);
 	layout->addWidget(plot);
-
 	center->setLayout(layout);
-
 	setCentralWidget(center);
+
 
 	QTimer * timer = new QTimer(this);
 	connect(timer, SIGNAL(timeout()), this, SLOT(draw()));
@@ -58,31 +50,28 @@ main_window::main_window(std::string const & f, QWidget *parent) :
 }
 
 main_window::~main_window()
-{
-	delete osg;
-}
+{}
 
 void main_window::resizeEvent(QResizeEvent* event)
 {
 	QMainWindow::resizeEvent(event);
-	osg->setMinimumHeight(height()/2);
-	plot->setMaximumHeight(height()/2);
 }
 
 void main_window::draw()
 {
 	double elapsed = time.elapsed()/1000.0;
-	if (elapsed-lastElapsedOsg > 0.002)
+	// update molecule
+	if (elapsed-lastElapsed >= 0.01)
 	{
-		lastElapsedOsg = elapsed;
+		lastElapsed = elapsed;
+		t+=10;
 		osg->brownian_move();
+		plot->update(double(t));
 	}
-	osg->update();
-
-	if (elapsed-lastElapsedPlot > 1.0)
+	if (elapsed-lastDraw >= 1.0)
 	{
-		lastElapsedPlot = elapsed;
+		lastDraw = elapsed;
 		plot->replot();
 	}
-
+	osg->update();
 }

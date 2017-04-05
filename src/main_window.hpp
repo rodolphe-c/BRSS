@@ -22,10 +22,7 @@
 #include <QTime>
 #include <QFrame>
 
-#include "../src/osg_widget.hpp"
-
-#include <qwt_plot.h>
-#include <qwt_plot_curve.h>
+#include "../src/molecule_plot.hpp"
 
 class main_window : public QMainWindow
 {
@@ -47,12 +44,13 @@ private:
 	QFrame * center;
 
 	osg_widget * osg;
-	QwtPlot * plot;
+	molecule_plot * plot;
 
 	//update loop
 	QTime time;
-	double lastElapsedOsg = 0;
-	double lastElapsedPlot = 0;
+	double lastElapsed = 0;
+	double lastDraw = 0;
+	int t = 0;
 };
 
 #endif // MAIN_WINDOW_HPP

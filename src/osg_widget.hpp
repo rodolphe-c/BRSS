@@ -19,6 +19,7 @@
 #define osg_widget_hpp
 
 #include <vector>
+#include <array>
 
 #include <QGLWidget>
 
@@ -32,6 +33,18 @@
 
 #include "brss/simulator/molecule.hpp"
 
+struct mol_type{
+	size_t id;
+	size_t size;
+	size_t popinit;
+	float velocity;
+	QColor color;
+
+	mol_type(size_t const i, size_t const s, size_t const p, float const v, std::array<int,3> const & c) :
+		id(i), size(s), popinit(p), velocity(v), color(QColor(c[0],c[1],c[2]))
+	{}
+};
+
 class osg_widget: public QGLWidget
 {
 Q_OBJECT
@@ -41,8 +54,8 @@ public:
 	osg::ref_ptr<osgViewer::GraphicsWindowEmbedded> m_window;
 	osg::ref_ptr<osg::Group> m_group;
 
-	std::vector<molecule> m_molecules;
-	std::vector<std::vector<molecule>> molecules_id;
+	std::vector<mol_type> molecules_types;
+	std::vector<molecule> molecules;
 
 	double m_scaleX, m_scaleY;
 	float m_radiusMolecule = 1.f;

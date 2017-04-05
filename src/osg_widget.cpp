@@ -40,6 +40,9 @@
 #include "program.hpp"
 
 
+std::random_device rd;
+std::mt19937 gen(rd());
+
 //http://stackoverflow.com/questions/20433443/creating-a-sphere-using-osggeometry-in-openscenegraph
 osg::ref_ptr<osg::Geode> buildSphere( float const radius, osg::Vec4 const & color, size_t const rings = 10, size_t const sectors= 10)
 {
@@ -129,7 +132,7 @@ osg_widget::osg_widget(std::string const & filename, QWidget *parent, double con
 	catch (brss::error_t const & e)
 	{
 		auto msg = QString("<font color='#ff0000'>ERROR ") + QString::fromStdString(e.first) + QString("</font><p>") + QString::fromStdString(e.second);
-		QMessageBox::critical(nullptr, "Echec de compilation", msg);
+		QMessageBox::critical(this, "Echec de compilation", msg);
 		exit(1);
 	}
 
@@ -137,7 +140,7 @@ osg_widget::osg_widget(std::string const & filename, QWidget *parent, double con
 	m_radiusMolecule = 5.f;
 
 
-	m_viewer =new osgViewer::Viewer;
+	m_viewer = new osgViewer::Viewer;
 
 	m_group = new osg::Group;
 
@@ -150,16 +153,15 @@ osg_widget::osg_widget(std::string const & filename, QWidget *parent, double con
 	size_t id = 0;
 	for(auto const & m : prog.molecules_index)
 	{
-		molecules_id.push_back(std::vector<molecule>());
+		molecules_types.push_back(mol_type(m.get().id, m.get().taille, m.get().popinit, m.get().velocity, m.get().couleur));
 		for (size_t i = 0; i < m.get().popinit; ++i)
 		{
-			//molecules_id[i].push_back(molecule(id, m.get().id, m.get().velocity));
-			m_molecules.push_back(molecule(id, m.get().id, m.get().velocity));
+			molecules.push_back(molecule(id, m.get().id, m.get().velocity));
 			id++;
 		}
 	}
 
-	auto size = std::pow(m_molecules.size(), 1.f/3.f);
+	auto size = std::pow(molecules.size(), 1.f/3.f);
 	size_t cpt = 0;
 
 	// Enzymes
@@ -169,13 +171,13 @@ osg_widget::osg_widget(std::string const & filename, QWidget *parent, double con
 		{
 			for (size_t i = 0; i < size; ++i)
 			{
-				if(cpt >= m_molecules.size())
+				if(cpt >= molecules.size())
 				{
 					break;
 				}
 
-				auto radius = prog.molecules_index[m_molecules.at(cpt).type].get().taille/2;
-				auto c = prog.molecules_index[m_molecules.at(cpt).type].get().couleur;
+				auto radius = prog.molecules_index[molecules.at(cpt).type].get().taille/2;
+				auto c = prog.molecules_index[molecules.at(cpt).type].get().couleur;
 
 				auto color = osg::Vec4(float(c[0]/255),float(c[1]/255),float(c[2]/255),1.f);
 				osg::ref_ptr<osg::Geode> enzyme = buildSphere(radius, color);
@@ -311,9 +313,6 @@ void osg_widget::brownian_move()
 	for  (size_t i = 0; i < m_group->getNumChildren()-1; ++i)
 	{
 		osg::ref_ptr<osg::PositionAttitudeTransform> transform = dynamic_cast<osg::PositionAttitudeTransform*>(m_group->getChild(unsigned(i+1)));
-
-		std::random_device rd;
-		std::mt19937 gen(rd());
 		std::uniform_real_distribution<float> dis(-10.f, 10.f);
 
 		float x = dis(gen);
