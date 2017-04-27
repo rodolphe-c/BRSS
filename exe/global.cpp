@@ -1,4 +1,5 @@
-// Copyright © 2017 Rodolphe Cargnello, rodolphe.cargnello@gmail.com
+// Copyright © 2017 Ayoub Jaa, ayoub.jaa@u-psud.fr
+// Copyright © 2017 Ifthihar Mohamed Raffique, ifthihar1995@gmail.com
 
 // This file is part of BRSS.
 
@@ -13,7 +14,6 @@
 // GNU Affero General Public License for more details.
 // You should have received a copy of the GNU Affero General Public License
 // along with BRSS. If not, see <http://www.gnu.org/licenses/>
-
 
 
 #include "brss/compiler.hpp"
@@ -48,22 +48,22 @@ int main(int argc, char** argv)
 		std::vector<brss::reaction> liste_reactions(p.reactions);
 		std::vector<int> vector_of_pop;
 		std::vector<point> vecteur_pop_en_cours;
-		
+
 		//variable aléatoire entre 0 et 1
 		std::random_device rd;  //Will be used to obtain a seed for the random number engine
 		std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
 		std::uniform_real_distribution<> dis(0, 1);
-		
+
 		//ajout population de molecule dans vector
 		for(size_t i=0; i< p.molecules_index.size(); ++i){
 			vector_of_pop.push_back(p.molecules_index[i].get().popinit);
 		}
-		
+
 		//affichage
 		/*for(size_t i=0; i< vector_of_pop.size(); ++i){
 			cout<<"contenu de vector_of_pop "<< vector_of_pop[i]<<endl;
 		}*/
-		
+
 		/*
 		//affichage liste_reactions
 		for (int i = 0; i < p.reactions.size(); ++i)
@@ -71,12 +71,12 @@ int main(int argc, char** argv)
 			std::cout << liste_reactions[i] << endl;
 		}
 		*/
-		
+
 		//Simulation de reaction aleatoire
 		for(size_t i = 0; i < TIME; i+=100)
 		{
 			// cout<<"size de liste reac : "<<liste_reactions.size()<<" size de cpt : "<<cpt_reactions<<endl;
-			
+
 			//choisir une réaction aléatoirement
 			if(cpt_reactions > liste_reactions.size()-1)
 			{
@@ -90,58 +90,58 @@ int main(int argc, char** argv)
 				//nous melangerons a nouveau notre liste de reaction
 				cpt_reactions = 0;
 			}
-			
+
 			//affichage de nos reactions
 			for(size_t b = 0; b<liste_reactions.size(); ++b){
 				cout<<"reaction de la liste : "<<liste_reactions[b]<<endl;
 			}
-			
+
 			//vecteur contenant une paire (index de la molecule/popinit)
 			std::vector<std::pair<size_t, int>> vect;
 			for(size_t k = 0; k < liste_reactions[cpt_reactions].left_molecules.size(); k++)
-			{	
+			{
 				//population initiales des reactifs (gauche)
 				unsigned int poo = p.molecules_index[liste_reactions[cpt_reactions].left_molecules[k]].get().popinit;
 				//cout << "Nombre popinit " << poo << endl;
-				
+
 				std::pair<size_t, int> pp(liste_reactions[cpt_reactions].left_molecules[k], poo);
 				vect.push_back(pp);
 			}
-			
+
 			/*for(int k = 0; k < vect.size(); k++)
-			{	
+			{
 				cout<<"........................"<<endl;
 				cout<<"VECTEUR   part1 : "<<vect[k].first<<" VECTEUR   part2 : "<<vect[k].second<<endl;
 				cout<<"........................"<<endl;
-				
+
 			}*/
-			
-			
+
+
 			//generation de notre variable aleatoire
 			double rand = (double)dis(gen);
 			//calcul de la propension
 			double prop = propension(liste_reactions[cpt_reactions], vector_of_pop, dimens);
-			int n = 0; 
-			calcul de n
+			int n = 0;
+			//calcul de n
 			n = calcul_n(prop, (float)rand);
-			
+
 			//cout <<"propension : " << prop<<endl;
 			//cout << "variable aleatoire : " << rand << endl;
 			cout << "n : " << n << endl;
 			cout << "------------------" << endl;
-			
-			
-			
+
+
+
 			//booleen permettant de verifier si la reaction a ete faite
 			//sert lorsque m1 et/ou m2 vont valoir 0 a la derniere iteration
 			//on doit quand meme ajouter une molecule a m3 avant de stabiliser la reaciton...
 			bool fait;
 			//nous permet de realiser la reaction meme si n > a la population des reactifs (gauche)
 			int nPetit;
-			
+
 			//Ajout et Suppression de molecule apres calcul de n
-			//pour chaque reaction 
-			
+			//pour chaque reaction
+
 			//pour chaque molécule de la réaction
 			//cas suppression molecule
 			for(size_t c = 0; c < liste_reactions[cpt_reactions].left_molecules.size(); c++)
@@ -149,7 +149,7 @@ int main(int argc, char** argv)
 				fait = false;
 				nPetit = 0;
 				//cout<<"test :"<<liste_reactions[cpt_reactions].left_molecules.size()<<endl;
-				
+
 				//dans le cas de 2 molecules a gauche (reactifs)
 				if(c == 0 && liste_reactions[cpt_reactions].left_molecules.size() == 2)
 				{
@@ -172,7 +172,7 @@ int main(int argc, char** argv)
 							vector_of_pop[liste_reactions[cpt_reactions].left_molecules[c+1]] = 0;
 							vector_of_pop[liste_reactions[cpt_reactions].left_molecules[c]] -= n;
 						}
-						
+
 						cout <<"---------------SUPPRESSION------------"<< endl;
 						for(unsigned int r=0; r<vector_of_pop.size(); ++r)
 						{
@@ -200,7 +200,7 @@ int main(int argc, char** argv)
 						// cout << "val : " << vector_of_pop[liste_reactions[cpt_reactions].left_molecules[c]] << endl;
 						// cout << "indice : " << liste_reactions[cpt_reactions].left_molecules[c] << endl;
 						// cout << "taille indice : " << liste_reactions[cpt_reactions].left_molecules.size() << endl;
-						
+
 						//ici la reaction n a pas pu se faire
 						fait = false;
 					}
@@ -218,7 +218,7 @@ int main(int argc, char** argv)
 							nPetit = vector_of_pop[liste_reactions[cpt_reactions].left_molecules[c]];
 							vector_of_pop[liste_reactions[cpt_reactions].left_molecules[c]] = 0;
 						}
-						
+
 						cout <<"---------------SUPPRESSION------------"<< endl;
 						for(unsigned int r=0; r<vector_of_pop.size(); ++r)
 						{
@@ -247,8 +247,8 @@ int main(int argc, char** argv)
 					}
 				}
 			}
-			
-			
+
+
 			//meme methode pour les molecules de droites (produits)
 			for(size_t c = 0; c < liste_reactions[cpt_reactions].right_molecules.size(); c++)
 			{
@@ -263,13 +263,13 @@ int main(int argc, char** argv)
 							vector_of_pop[liste_reactions[cpt_reactions].right_molecules[c]] += n;
 							vector_of_pop[liste_reactions[cpt_reactions].right_molecules[c+1]] += n;
 						}
-						//sinon on devra retirer nPetit et non n car cela veut dire qu'un des reactifs 
+						//sinon on devra retirer nPetit et non n car cela veut dire qu'un des reactifs
 						//voire tout les reactifs valent maintenant 0
 						else{
 							vector_of_pop[liste_reactions[cpt_reactions].right_molecules[c]] += nPetit;
 							vector_of_pop[liste_reactions[cpt_reactions].right_molecules[c+1]] += nPetit;
 						}
-						
+
 						cout <<"---------------AJOUT------------"<< endl;
 						for(unsigned int r=0; r<vector_of_pop.size(); ++r)
 						{
@@ -278,7 +278,7 @@ int main(int argc, char** argv)
 						cout <<"--------------------------------"<< endl;
 						// cout << "val : " << vector_of_pop[liste_reactions[cpt_reactions].left_molecules[c]] << endl;
 						// cout << "indice : " << liste_reactions[cpt_reactions].left_molecules[c] << endl;
-						
+
 					}
 					else if(vector_of_pop[liste_reactions[cpt_reactions].left_molecules[c]] == 0)
 					{
@@ -293,7 +293,7 @@ int main(int argc, char** argv)
 						cout <<"--------------------------------"<< endl;
 						// cout << "val : " << vector_of_pop[liste_reactions[cpt_reactions].left_molecules[c]] << endl;
 						// cout << "indice : " << liste_reactions[cpt_reactions].left_molecules[c] << endl;
-						
+
 					}
 				}
 				//cas un seul produit
@@ -332,12 +332,12 @@ int main(int argc, char** argv)
 					}
 				}
 			}
-			
+
 			//contiendra la population en cours (augmentation ou suppression)
 			vecteur_pop_en_cours.push_back(point(i, vector_of_pop));
 			cpt_reactions++;
 		}
-		
+
 		/*for(int y = 0; y<vecteur_pop_en_cours.size(); ++y){
 			for(int z = 0; z<vecteur_pop_en_cours[y].second.size(); ++z){
 				//contient le nombre de population actuelle
@@ -345,12 +345,12 @@ int main(int argc, char** argv)
 			}
 			cout<<""<<endl;
 		}*/
-		
+
 		//creation d un fichier afin de generer un graphique
 		//de notre réaction
 		ofstream myfile;
 		myfile.open ("pop.dat");
-		
+
 		for(size_t l=0; l < p.molecules_index.size(); ++l)
 		{
 			//devrait demarquer une courbe d une autre
@@ -364,15 +364,15 @@ int main(int argc, char** argv)
 			myfile << "\n";
 		}
 		myfile.close();
-		
+
 		//resultat final apres avoir terminer toutes les reactions
 		for(unsigned int r=0; r<vector_of_pop.size(); ++r)
 		{
 			cout << "m"<<r+1<<" finale : " << vector_of_pop[r] << endl;
 		}
-		
+
 	}
-	
+
 	//affichage erreur
 	catch (brss::error_t const & e)
 	{
@@ -393,12 +393,12 @@ double propension(brss::reaction react, std::vector<int> pop, int dim)
 	//si on a qu un reactif
 	if(react.left_molecules.size() == 1){
 		cout<<"pop molecule 0 :"<<pop[react.left_molecules[0]]<<endl;
-		rep = (double)((pop[react.left_molecules[0]]) * (double)react.proba); 
+		rep = (double)((pop[react.left_molecules[0]]) * (double)react.proba);
 	}
 	//si on en a 2
 	else{
 		//std::cout<<"test dimension : "<<dim<<std::endl;
-		
+
 		//mettre le diametre en micrometre
 		double d = double(dim)/1000;
 		double volume = (4*M_PI*(std::pow((d/2), 3)))/3;
@@ -414,15 +414,15 @@ double propension(brss::reaction react, std::vector<int> pop, int dim)
 //regulera l ajout et la suppression de molecule
 int calcul_n(double propension, float random)
 {
-	
+
 	double param, fractpart, intpart;
 
     param = propension;
     //permet d avoir la partie entiere de la propension
 	fractpart = modf (param , &intpart);
-	
+
 	//std::cout << "propension : "<<propension<<" , et la partie dec : "<< fractpart << std::endl;
-	
+
 	//std::cout << "partie dec : " << fractpart << std::endl;
 	// std::cout << "random : " << random << std::endl;
 	if(fractpart <= random){

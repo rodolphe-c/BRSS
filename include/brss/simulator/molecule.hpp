@@ -28,11 +28,18 @@ public:
 	float velocity;
 	bool view;
 
+	std::array<float, 3> pos;
+	std::array<float, 3> rpos;
+	std::array<size_t, 3> index;
+
 public:
 	molecule(size_t const ident, size_t const type, float const v) : type(type),
 	id(ident),
 	velocity(v),
-	view(false)
+	view(false),
+	pos({{0.f,0.f,0.f}}),
+	rpos({{0.f,0.f,0.f}}),
+	index({{0,0,0}})
 	{}
 };
 

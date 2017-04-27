@@ -54,5 +54,7 @@ mkdir build
 cd build
 cmake ..
 make
-./brss
+./brss ../test.mcl
+./compiler ../test.mcl
+./global ../test.mcl
 ```

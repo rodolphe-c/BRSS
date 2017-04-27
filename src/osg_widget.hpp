@@ -57,10 +57,14 @@ public:
 	std::vector<mol_type> molecules_types;
 	std::vector<molecule> molecules;
 
+	//Représentation du cube
+	std::vector<std::vector<std::vector<std::vector<molecule>>>> cube;
+
 	double m_scaleX, m_scaleY;
 	float m_radiusMolecule = 1.f;
 	float m_radiusCells = 20.f;
 	double m_degree = 1;
+	size_t max_molecule;
 
 	bool visit = false;
 
@@ -80,6 +84,9 @@ protected:
 
 private:
 	osgGA::EventQueue* getEventQueue() const;
+	std::vector<molecule> neighbour(molecule const & m);
+	void brownian_move_sections(size_t start, size_t blocks, std::vector<std::vector<molecule>> & matrix);
+	osg::PositionAttitudeTransform* findNode(std::string const & name);
 
 public slots:
 	void brownian_move();

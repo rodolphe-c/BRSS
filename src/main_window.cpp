@@ -35,8 +35,6 @@ main_window::main_window(std::string const & f, QWidget *parent) :
 	osg->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	plot->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
 
-
-
 	QVBoxLayout *layout = new QVBoxLayout();
 	layout->addWidget(osg);
 	layout->addWidget(plot);
@@ -60,19 +58,19 @@ void main_window::resizeEvent(QResizeEvent* event)
 void main_window::draw()
 {
 	double elapsed = time.elapsed()/1000.0;
-	// update molecule
-	if (elapsed-lastElapsed >= 0.01)
+	//On dessine toutes les 10ms
+	if (elapsed-lastElapsed >= 0.010)
 	{
 		lastElapsed = elapsed;
 		t+=10;
 		osg->brownian_move();
 		plot->update(double(t));
 	}
+	//On redessine le graphe
 	if (elapsed-lastDraw >= 1.0)
 	{
 		lastDraw = elapsed;
 		plot->replot();
 	}
-	//plot->replot();
 	osg->update();
 }

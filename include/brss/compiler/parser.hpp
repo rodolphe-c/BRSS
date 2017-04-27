@@ -1,5 +1,6 @@
 // Copyright © 2017 Rodolphe Cargnello, rodolphe.cargnello@gmail.com
 // Copyright © 2017 Ifthihar Mohamed Raffique, ifthihar1995@gmail.com
+// Copyright © 2017 Ayoub Jaa, ayoub.jaa@u-psud.fr
 
 // This file is part of BRSS.
 
@@ -31,6 +32,7 @@ namespace brss
 
 	using error_t = std::pair<std::string, std::string>;
 
+	// Test taille de nos expressions
 	inline
 	void check_size(std::vector<brss::expression_t> const & data, size_t const i)
 	{
@@ -40,6 +42,7 @@ namespace brss
 		}
 	}
 
+	// Test de déclaration molécule
 	inline
 	void check_molecule(program const & p, std::string const & s, std::vector<brss::expression_t> const & data, size_t const i)
 	{
@@ -49,6 +52,7 @@ namespace brss
 		}
 	}
 
+	// Test une séquence de Token
 	inline
 	bool is_sequence (std::vector<brss::token_t> tokens, std::vector<brss::expression_t> const & data, size_t const i)
 	{
@@ -63,6 +67,7 @@ namespace brss
 		return true;
 	}
 
+	// Déclaration d'un ensemble de molécules
 	inline
 	void molecule_t_declaration(brss::program & p, std::vector<brss::expression_t> const & data, size_t & i)
 	{
@@ -117,6 +122,7 @@ namespace brss
 		}
 	}
 
+	// Dimension de la Cellule
 	inline
 	void dimension_cellule(brss::program & p, std::vector<brss::expression_t> const & data, size_t & i)
 	{
@@ -133,6 +139,7 @@ namespace brss
 		}
 	}
 
+	// Taille d'un type de molécule
 	inline
 	void taille(brss::program & p, std::vector<brss::expression_t> const & data, size_t & i, std::vector<error_t> & warnings)
 	{
@@ -166,6 +173,7 @@ namespace brss
 		}
 	}
 
+	// Vitesse d'un type de molécule
 	inline
 	void velocity(brss::program & p, std::vector<brss::expression_t> const & data, size_t & i, std::vector<error_t> & warnings)
 	{
@@ -202,6 +210,7 @@ namespace brss
 		}
 	}
 
+	// Population initiale d'un type de molécule
 	inline
 	void popinit(brss::program & p, std::vector<brss::expression_t> const & data, size_t & i)
 	{
@@ -227,6 +236,7 @@ namespace brss
 		}
 	}
 
+	// Valeur RGB d'un type molécule
 	inline
 	std::array<int,3> rgb(std::vector<brss::expression_t> const & data, size_t & i, std::vector<error_t> & warnings)
 	{
@@ -280,6 +290,7 @@ namespace brss
 		return tab;
 	}
 
+	// Déclaration d'une couleur pour un type molécule
 	inline
 	void couleur(brss::program & p, std::vector<brss::expression_t> const & data, size_t & i, std::vector<error_t> & warnings)
 	{
@@ -316,6 +327,7 @@ namespace brss
 		}
 	}
 
+	// Appels de fonctions pour un type molécule
 	inline
 	void functions_call(brss::program & p, std::vector<brss::expression_t> const & data, size_t & i, std::vector<error_t> & warnings)
 	{
@@ -338,6 +350,7 @@ namespace brss
 		}
 	}
 
+	// Déclaration d'une réaction
 	inline
 	void gestion_reactions(brss::program & p, std::vector<brss::expression_t> const & data, size_t & i)
 	{
@@ -432,11 +445,13 @@ namespace brss
 		p.reactions.push_back(r);
 	}
 
+	// Algorithme principal de parsing du programme
 	inline
 	brss::program parser(std::vector<brss::expression_t> const & data, std::vector<error_t> & warnings)
 	{
 		brss::program p;
 
+		// Création du programme
 		for (size_t i = 0; i < data.size(); i++)
 		{
 			if(data[i].token == token_t::KEYWORD)
@@ -463,6 +478,7 @@ namespace brss
 			}
 		}
 
+		// Test de couleurs différentes pour un type de molécule
 		for(size_t i = 0; i <  p.molecules_index.size(); ++i)
 		{
 			for(size_t j = i+1; j <  p.molecules_index.size(); ++j)
@@ -474,6 +490,7 @@ namespace brss
 			}
 		}
 
+		// Test de dépassement de la probabilité sur une même formule
 		for(auto const & m1 : p.molecules_index)
 		{
 			for(auto const & m2 : p.molecules_index)

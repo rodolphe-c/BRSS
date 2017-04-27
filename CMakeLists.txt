@@ -116,6 +116,10 @@ add_executable("brss" "${OS_BUNDLE}"
 "exe/brss.cpp" "${project_sources}" "${uis_forms}" "${META_FILES_TO_INCLUDE}" "${rcc}")
 target_link_libraries("brss" "${OPENSCENEGRAPH_LIBRARIES}" "${qt5_libraries}" "${QWT_LIBRARY}")
 
+message(STATUS "---")
+message(STATUS "Add exe global")
+add_executable("global" "exe/global.cpp")
+
 # Test
 message(STATUS "---")
 

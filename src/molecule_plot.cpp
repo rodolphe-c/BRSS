@@ -46,6 +46,11 @@ molecule_plot::molecule_plot(osg_widget * t, QWidget *parent):
 		curve->attach(this);
 		m_data.push_back(data);
 	}
+
+	QwtPlotPicker* plotPicker = new QwtPlotPicker(this->xBottom, this->yLeft, QwtPicker::CrossRubberBand, QwtPicker::AlwaysOn, this->canvas());
+	QwtPickerMachine* pickerMachine = new QwtPickerClickPointMachine();
+	plotPicker->setStateMachine(pickerMachine);
+	connect(plotPicker, SIGNAL(selected(const QPointF&)), this, SLOT(onSelected(const QPointF&)));
 }
 
 void molecule_plot::update(double const elapsed)
