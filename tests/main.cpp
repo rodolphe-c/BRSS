@@ -27,7 +27,7 @@
 
 using namespace std;
 
-const int TIME = 1000;//60000000; //vrai temps : 6 * 10^7 micro s
+const int TIME = /*1000;*/60000000; //vrai temps : 6 * 10^7 micro s
 const double ALPHA = 0.00000074;
 
 double propension(brss::reaction react, std::vector<int> pop, int dim);
@@ -54,8 +54,7 @@ int main(int argc, char** argv)
 		std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
 		std::uniform_real_distribution<> dis(0, 1);
 		
-		//ajout molecule dans vector
-		
+		//ajout population de molecule dans vector
 		for(size_t i=0; i< p.molecules_index.size(); ++i){
 			vector_of_pop.push_back(p.molecules_index[i].get().popinit);
 		}
@@ -83,11 +82,16 @@ int main(int argc, char** argv)
 			{
 				// obtain a time-based seed:
 		   	    long long int seed = std::chrono::system_clock::now().time_since_epoch().count();
-			    shuffle (liste_reactions.begin(), liste_reactions.end(), std::default_random_engine(seed));
+			    //permet de melanger la liste de reaction
+				shuffle (liste_reactions.begin(), liste_reactions.end(), std::default_random_engine(seed));
 				//std::random_shuffle ( liste_reactions.begin(), liste_reactions.end() );
+				//le but: melanger la liste puis la parcourir normalement
+				//une fois le cpt_reactions egal au nombre de reaction
+				//nous melangerons a nouveau notre liste de reaction
 				cpt_reactions = 0;
 			}
 			
+			//affichage de nos reactions
 			for(size_t b = 0; b<liste_reactions.size(); ++b){
 				cout<<"reaction de la liste : "<<liste_reactions[b]<<endl;
 			}
@@ -111,10 +115,14 @@ int main(int argc, char** argv)
 				cout<<"........................"<<endl;
 				
 			}*/
-		
+			
+			
+			//generation de notre variable aleatoire
 			double rand = (double)dis(gen);
+			//calcul de la propension
 			double prop = propension(liste_reactions[cpt_reactions], vector_of_pop, dimens);
 			int n = 0; 
+			calcul de n
 			n = calcul_n(prop, (float)rand);
 			
 			//cout <<"propension : " << prop<<endl;
@@ -141,13 +149,15 @@ int main(int argc, char** argv)
 				fait = false;
 				nPetit = 0;
 				//cout<<"test :"<<liste_reactions[cpt_reactions].left_molecules.size()<<endl;
-				//dans le cas de 2 molecules a gauche
+				
+				//dans le cas de 2 molecules a gauche (reactifs)
 				if(c == 0 && liste_reactions[cpt_reactions].left_molecules.size() == 2)
 				{
 					//si les 2 molecules sont > 0
 					if(vector_of_pop[liste_reactions[cpt_reactions].left_molecules[c]] > 0 && vector_of_pop[liste_reactions[cpt_reactions].left_molecules[c+1]] > 0)
 					{
 						//suppression molecules "reactifs" (gauche)
+						//en verifiant si la population est superieur ou egal au n calculer
 						if(vector_of_pop[liste_reactions[cpt_reactions].left_molecules[c]] >= n && vector_of_pop[liste_reactions[cpt_reactions].left_molecules[c+1]] >= n){
 							vector_of_pop[liste_reactions[cpt_reactions].left_molecules[c]] -= n;
 							vector_of_pop[liste_reactions[cpt_reactions].left_molecules[c+1]] -= n;
@@ -172,6 +182,7 @@ int main(int argc, char** argv)
 						// cout << "val : " << vector_of_pop[liste_reactions[cpt_reactions].left_molecules[c]] << endl;
 						// cout << "indice : " << liste_reactions[cpt_reactions].left_molecules[c] << endl;
 						// cout << "taille indice : " << liste_reactions[cpt_reactions].left_molecules.size() << endl;
+						//on note la reaction comme effectuer
 						fait = true;
 					}
 					//sinon je laisse à 0
@@ -189,6 +200,8 @@ int main(int argc, char** argv)
 						// cout << "val : " << vector_of_pop[liste_reactions[cpt_reactions].left_molecules[c]] << endl;
 						// cout << "indice : " << liste_reactions[cpt_reactions].left_molecules[c] << endl;
 						// cout << "taille indice : " << liste_reactions[cpt_reactions].left_molecules.size() << endl;
+						
+						//ici la reaction n a pas pu se faire
 						fait = false;
 					}
 				}
@@ -236,7 +249,7 @@ int main(int argc, char** argv)
 			}
 			
 			
-			//meme proceder pour les molecules de droites
+			//meme methode pour les molecules de droites (produits)
 			for(size_t c = 0; c < liste_reactions[cpt_reactions].right_molecules.size(); c++)
 			{
 				//cout<<"test :"<<liste_reactions[cpt_reactions].left_molecules.size()<<endl;
@@ -245,10 +258,13 @@ int main(int argc, char** argv)
 					if(vector_of_pop[liste_reactions[cpt_reactions].left_molecules[c]] > 0 || fait == true)
 					{
 						//ajout molecules "produits" (droite)
+						//si nPetit vaut 0, alors aucun probleme
 						if(nPetit == 0){
 							vector_of_pop[liste_reactions[cpt_reactions].right_molecules[c]] += n;
 							vector_of_pop[liste_reactions[cpt_reactions].right_molecules[c+1]] += n;
 						}
+						//sinon on devra retirer nPetit et non n car cela veut dire qu'un des reactifs 
+						//voire tout les reactifs valent maintenant 0
 						else{
 							vector_of_pop[liste_reactions[cpt_reactions].right_molecules[c]] += nPetit;
 							vector_of_pop[liste_reactions[cpt_reactions].right_molecules[c+1]] += nPetit;
@@ -280,7 +296,7 @@ int main(int argc, char** argv)
 						
 					}
 				}
-			
+				//cas un seul produit
 				else if(c == 0 && liste_reactions[cpt_reactions].right_molecules.size() == 1)
 				{
 					if((vector_of_pop[liste_reactions[cpt_reactions].left_molecules[c]] > 0 && vector_of_pop[liste_reactions[cpt_reactions].left_molecules[c+1]] > 0) || fait == true)
@@ -357,6 +373,7 @@ int main(int argc, char** argv)
 		
 	}
 	
+	//affichage erreur
 	catch (brss::error_t const & e)
 	{
 		std::cerr << "\033[31mERROR " << e.first << "\033[0m " << e.second << std::endl;
@@ -372,13 +389,16 @@ int main(int argc, char** argv)
 double propension(brss::reaction react, std::vector<int> pop, int dim)
 {
 	double rep = 0.0;
-	
+	//deux cas a traites
+	//si on a qu un reactif
 	if(react.left_molecules.size() == 1){
 		cout<<"pop molecule 0 :"<<pop[react.left_molecules[0]]<<endl;
 		rep = (double)((pop[react.left_molecules[0]]) * (double)react.proba); 
 	}
+	//si on en a 2
 	else{
 		//std::cout<<"test dimension : "<<dim<<std::endl;
+		
 		//mettre le diametre en micrometre
 		double d = double(dim)/1000;
 		double volume = (4*M_PI*(std::pow((d/2), 3)))/3;
