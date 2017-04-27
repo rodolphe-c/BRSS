@@ -1,0 +1,26 @@
+Pour la version globale:
+
+le code se trouve dans /tests/main.cpp
+pour le compiler :
+cmake ..
+puis make
+
+ensuite exécuter le programme en lui passant en parametre le fichier de config:
+./test__main ../data/test.mcl
+
+Une fois l'execution terminée, dans le repertoire build, vous obtiendrez un fichier pop.dat
+2 solutions s'offrent à vous pour obtenir un graphique:
+
+-Importer le fichier .dat via excel (ne contient pas toutes les données si fichier trop gros), 
+puis établir un graphique (colonne 1: X, le temps/ colonne 2 : Y, l'évolution de la population 
+==> retour chariot à la fin pour séparer les molécules entre elles)
+
+-gnuplot sur commande linux
+tappez les commandes:
+
+gnuplot
+>set terminal png [size x,y] // option pas obligatoire
+>set output "nom_fichier_sortie.png"
+>plot "pop.dat" with linespoints
+
+mais s'il y a trop de données les courbes seront illisibles
